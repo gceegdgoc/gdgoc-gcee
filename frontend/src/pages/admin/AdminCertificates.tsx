@@ -102,7 +102,12 @@ export default function AdminCertificates() {
       setEventId(selected._id);
       setEventName(selected.title);
       if (selected.date) {
-        setEventDate(String(selected.date).slice(0, 10));
+        // The API may return a full ISO timestamp or a plain YYYY-MM-DD
+        // string; always normalize to the YYYY-MM-DD date input format.
+        const iso = new Date(selected.date).toISOString().slice(0, 10);
+        if (!Number.isNaN(new Date(iso).getTime())) {
+          setEventDate(iso);
+        }
       }
     }
   };
@@ -127,6 +132,10 @@ export default function AdminCertificates() {
     }
     if (sendEmail && !studentEmail.trim()) {
       toast.error('Please enter the student email to send the certificate.');
+      return;
+    }
+    if (sendEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentEmail.trim())) {
+      toast.error('Please enter a valid student email address.');
       return;
     }
 
@@ -476,6 +485,10 @@ export default function AdminCertificates() {
                 />
                 <span>Send certificate email with PDF attachment to student</span>
               </label>
+              <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
+                The student must be registered for the selected event AND marked as attended before a
+                certificate can be issued.
+              </p>
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2">

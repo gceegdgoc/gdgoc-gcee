@@ -5,8 +5,10 @@ import { Certificate } from '../models/Certificate';
 import { CertificateCampaign } from '../models/CertificateCampaign';
 import { Student } from '../models/Student';
 import { Event as EventModel } from '../models/Event';
+import { Registration, Attendance } from '../models';
 import type { AuthRequest } from '../middleware/auth';
-import { formatDotDate, todayIST } from '../utils/dates';
+import { formatDotDate, todayIST, normalizeDateToISO } from '../utils/dates';
+import { safeString } from '../utils/safe';
 import { generateCertificatePDF } from '../utils/pdf';
 import { generateQRCodeDataURL } from '../utils/qr';
 import { nextCertificateId } from '../utils/ids';
@@ -16,6 +18,7 @@ import { generateCertificateEmailHtml } from '../services/email/templates/certif
 import { connectDB } from '../config/db';
 
 const PDF_MIME = 'application/pdf';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Public-safe certificate view — never expose sensitive fields. */
 function publicView(cert: any) {
@@ -237,10 +240,11 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     await connectDB();
     const { studentName, studentEmail, eventId, eventName, eventDate, sendEmail = true } = req.body;
 
-    if (!studentName || !studentName.trim()) {
+    // ── 1. Field validation with SPECIFIC messages (never a generic wall) ──
+    if (!safeString(studentName).trim()) {
       res.status(400).json({
         success: false,
-        message: 'Validation failed. Please check the highlighted fields.',
+        message: 'Student name is required.',
         errors: { studentName: 'Student name is required.' },
       });
       return;
@@ -248,7 +252,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     if (!eventId || typeof eventId !== 'string' || !mongoose.Types.ObjectId.isValid(eventId)) {
       res.status(400).json({
         success: false,
-        message: 'Validation failed. Please check the highlighted fields.',
+        message: 'Please select the event from the dropdown so the certificate links to a real event.',
         errors: { eventId: 'Please select a valid event from the list.' },
       });
       return;
@@ -260,21 +264,23 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     if (!eventRecord) {
       res.status(400).json({
         success: false,
-        message: 'Validation failed. Please check the highlighted fields.',
+        message: 'Selected event no longer exists. Please pick another event.',
         errors: { eventId: 'Selected event no longer exists. Please pick another event.' },
       });
       return;
     }
 
+    // ── 2. Canonical values come from the DATABASE record ────────────────
+    // eventName/eventDate from the form are only fallbacks. Dates are
+    // normalized to YYYY-MM-DD regardless of how the client formatted them.
     const cleanEventId = eventRecord._id;
-    const cleanEventName = (eventName || eventRecord.title || '').trim();
-    const cleanEventDate =
-      (eventDate || String(eventRecord.date || '').slice(0, 10) || '').trim();
+    const cleanEventName = safeString(eventName).trim() || safeString(eventRecord.title).trim();
+    const cleanEventDate = normalizeDateToISO(safeString(eventDate)) || normalizeDateToISO(safeString(eventRecord.date));
 
     if (!cleanEventName) {
       res.status(400).json({
         success: false,
-        message: 'Validation failed. Please check the highlighted fields.',
+        message: 'Event name is required.',
         errors: { eventName: 'Event name is required.' },
       });
       return;
@@ -282,17 +288,76 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     if (!cleanEventDate) {
       res.status(400).json({
         success: false,
-        message: 'Validation failed. Please check the highlighted fields.',
-        errors: { eventDate: 'Event date is required.' },
+        message: 'A valid event date is required (e.g. 2026-08-23).',
+        errors: { eventDate: 'Invalid event date.' },
       });
       return;
     }
 
-    const cleanName = studentName.trim();
-    const cleanEmail = (studentEmail || '').trim().toLowerCase();
-    const issueDate = todayIST();
+    // ── 3. Student identity + CERTIFICATE ELIGIBILITY ────────────────────
+    // A certificate may ONLY be issued to a student who has an account,
+    // registered for THIS event, and was marked as participated (attended).
+    const cleanName = safeString(studentName).trim();
+    const cleanEmail = safeString(studentEmail).trim().toLowerCase();
 
-    const studentRecord = cleanEmail ? await Student.findOne({ email: cleanEmail }).lean() : null;
+    if (!cleanEmail || !EMAIL_RE.test(cleanEmail)) {
+      res.status(400).json({
+        success: false,
+        message: 'Enter the student email so certificate eligibility can be verified.',
+        errors: { studentEmail: 'Enter a valid student email address.' },
+      });
+      return;
+    }
+
+    const studentRecord = await Student.findOne({ email: cleanEmail }).lean();
+    if (!studentRecord) {
+      res.status(400).json({
+        success: false,
+        message: 'No GDGoC GCEE student account was found for this email.',
+        errors: { studentEmail: 'No student account found for this email.' },
+      });
+      return;
+    }
+
+    const registration = await Registration.findOne({
+      studentId: studentRecord._id,
+      eventId: cleanEventId,
+      status: 'REGISTERED',
+    }).lean();
+    if (!registration) {
+      res.status(400).json({
+        success: false,
+        message: 'Student is not eligible for a certificate for this event: they are not registered for it.',
+        errors: { studentEmail: 'Student is not registered for this event.' },
+      });
+      return;
+    }
+
+    const attendance = await Attendance.findOne({
+      studentId: studentRecord._id,
+      eventId: cleanEventId,
+      status: 'PRESENT',
+    }).lean();
+    if (!attendance) {
+      res.status(400).json({
+        success: false,
+        message: 'Student is not eligible for a certificate for this event: participation was not recorded.',
+        errors: { studentEmail: 'Student has not participated in this event.' },
+      });
+      return;
+    }
+
+    const existingCert = await Certificate.findOne({ studentId: studentRecord._id, eventId: cleanEventId }).lean();
+    if (existingCert) {
+      res.status(400).json({
+        success: false,
+        message: `A certificate (${existingCert.certificateId}) already exists for this student for this event.`,
+        errors: { studentEmail: 'Certificate already issued for this student and event.' },
+      });
+      return;
+    }
+
+    const issueDate = todayIST();
 
     let cert: any = null;
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -314,8 +379,9 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       try {
         cert = await Certificate.create({
           certificateId,
-          studentId: studentRecord?._id || undefined,
+          studentId: studentRecord._id,
           eventId: cleanEventId,
+          eventRegistrationId: registration._id,
           studentName: cleanName,
           studentEmail: cleanEmail,
           organization: 'GDGoC GCEE',
@@ -345,7 +411,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     let emailSent = false;
     let emailError: string | undefined;
 
-    if (sendEmail && cleanEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    if (sendEmail) {
       const appUrl = getPublicAppUrl();
       const verificationUrl = `${appUrl}/certificate/${cert.certificateId}`;
       const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
@@ -401,9 +467,9 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
 export async function previewCertificatePdf(req: any, res: Response) {
   try {
     const { studentName, eventName, eventDate } = req.body;
-    const cleanName = (studentName || 'Student Name').trim();
-    const cleanEventName = (eventName || 'AI Prompt Engineering Workshop').trim();
-    const cleanEventDate = (eventDate || todayIST()).trim();
+    const cleanName = safeString(studentName).trim() || 'Student Name';
+    const cleanEventName = safeString(eventName).trim() || 'AI Prompt Engineering Workshop';
+    const cleanEventDate = normalizeDateToISO(safeString(eventDate)) || todayIST();
     const issueDate = todayIST();
 
     const sampleId = 'GDGCEE-PREVIEW-001';

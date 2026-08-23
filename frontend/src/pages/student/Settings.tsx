@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { KeyRound } from 'lucide-react';
 import { ButtonSpinner } from '../../components/ui/Spinner';
 import { api, getErrorMessage } from '../../lib/api';
+import { SITE_EMAIL } from '../../lib/site';
 
 export default function Settings() {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -78,7 +79,7 @@ export default function Settings() {
         <h2 className="font-display text-lg font-bold text-navy-900">Account</h2>
         <p className="mt-2 text-sm text-ink-muted">
           Need help with your account or certificate queries? Reach the community team at{' '}
-          <a href="mailto:gceegdgoc@gmail.com" className="font-medium text-g-blue hover:underline">gceegdgoc@gmail.com</a>.
+          <a href={`mailto:${SITE_EMAIL}`} className="font-medium text-g-blue hover:underline">{SITE_EMAIL}</a>.
         </p>
       </div>
     </div>

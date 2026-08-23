@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { Resend } from 'resend';
-import { env, CLUB } from '../config/env';
+import { env, CLUB, SITE_EMAIL } from '../config/env';
 import { baseEmailHtml, escapeHtml } from './email/templates/base.template';
 import { generateOtpEmailHtml } from './email/templates/otp.template';
 import { generateWelcomeEmailHtml } from './email/templates/welcome.template';
@@ -23,7 +23,7 @@ import { generateCertificateEmailHtml } from './email/templates/certificate.temp
  * Secrets are read from environment variables and never leave the server.
  */
 
-const WEBSITE_GMAIL_ADDRESS = 'gceegdgoc@gmail.com';
+const WEBSITE_GMAIL_ADDRESS = SITE_EMAIL;
 
 // ── Shared header-injection / input sanitization helpers ─────────────
 
@@ -67,7 +67,7 @@ export function isGmailConfigured(): boolean {
 /** From header used for all normal website emails (the club's Gmail). */
 export function getGmailFromAddress(): string {
   const { user } = getGmailCredentials();
-  return `${CLUB.name} <${user || 'gceegdgoc@gmail.com'}>`;
+  return `${CLUB.name} <${user || WEBSITE_GMAIL_ADDRESS}>`;
 }
 
 function getGmailTransporter(): Transporter | null {
@@ -177,7 +177,7 @@ export async function sendGmailEmail(opts: GmailMailOptions): Promise<EmailSendR
     const safeError =
       err?.code === 'EAUTH'
         ? 'Gmail SMTP authentication failed. Please check GMAIL_USER and GMAIL_APP_PASSWORD.'
-        : 'Unable to send OTP via Gmail SMTP. Please check your email and try again.';
+        : 'The email could not be sent right now. Please try again in a moment.';
     return { success: false, error: safeError };
   }
 }

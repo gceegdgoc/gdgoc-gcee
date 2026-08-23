@@ -36,9 +36,12 @@ export function StatusBadge({ status }: { status: string }) {
     REVOKED: 'red',
     REGISTERED: 'blue',
   };
+  // The API can hand back a Date object (or any non-string) for some
+  // statuses; normalize to a plain string before calling .replace().
+  const label = typeof status === 'string' ? status : status == null ? '' : String(status);
   return (
-    <Badge tone={map[status] || 'gray'} className="capitalize">
-      {status.replace(/_/g, ' ').toLowerCase()}
+    <Badge tone={map[label] || 'gray'} className="capitalize">
+      {label.replace(/_/g, ' ').toLowerCase()}
     </Badge>
   );
 }

@@ -5,9 +5,11 @@ import { connectDB } from '../config/db';
 import { emailIsConfigured, getEmailConfigStatus, sendEventRegistrationPDFEmail } from '../utils/email';
 import { getResendCompatibleMailer } from '../lib/mailer';
 import { generateRegistrationListPDFBuffer, type StudentRegistrationPdfRow } from '../utils/pdf';
+import { safeString } from '../utils/safe';
+import { SITE_EMAIL } from '../config/env';
 
-function escapeHtml(str: string): string {
-  return str
+function escapeHtml(value: unknown): string {
+  return safeString(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -18,7 +20,7 @@ function escapeHtml(str: string): string {
 function getFromAddress(): string {
   const status = getEmailConfigStatus();
   if (status.fromEmail) return `GDGoC GCEE <${status.fromEmail}>`;
-  return 'GDGoC GCEE <onboarding@resend.dev>';
+  return `GDGoC GCEE <${SITE_EMAIL}>`;
 }
 
 // Helper to fetch all registered students for an event

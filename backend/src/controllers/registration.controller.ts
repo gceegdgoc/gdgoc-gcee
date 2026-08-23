@@ -2,6 +2,7 @@
 import type { Request, Response } from 'express';
 import { GoogleFormRegistration, EventModel, Registration, EventRegistration } from '../models';
 import { connectDB } from '../config/db';
+import { safeString } from '../utils/safe';
 
 function extractField(data: Record<string, any>, keys: string[]): string {
   for (const search of keys) {
@@ -186,7 +187,7 @@ export async function exportEventRegistrationsAsCsv(req: any, res: Response) {
     const header = '#,Name,Email,Phone,College,Department,Year,Event,Source,Registered At\n';
     const rows = items.map((r, i) => {
       const d = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '';
-      return `${i + 1},"${(r.name || '').replace(/"/g, '""')}","${r.email || ''}","${r.phone || ''}","${(r.college || '').replace(/"/g, '""')}","${r.department || ''}","${r.year || ''}","${event.title}","${r.source || 'webhook'}","${d}"`;
+      return `${i + 1},"${safeString(r.name).replace(/"/g, '""')}","${safeString(r.email)}","${safeString(r.phone)}","${safeString(r.college).replace(/"/g, '""')}","${safeString(r.department)}","${safeString(r.year)}","${safeString(event.title)}","${safeString(r.source) || 'webhook'}","${d}"`;
     }).join('\n');
 
     res.setHeader('Content-Type', 'text/csv');

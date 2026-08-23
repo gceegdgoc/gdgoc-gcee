@@ -4,7 +4,8 @@ import mongoose from 'mongoose';
 import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration, EVENT_CATEGORIES, EVENT_STATUSES } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { nextEventId } from '../utils/ids';
-import { todayIST, isDateBefore, formatTimeRange, isEventRegistrationOpen, getEffectiveEventStatus } from '../utils/dates';
+import { todayIST, isDateBefore, formatTimeRange, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate } from '../utils/dates';
+import { safeString } from '../utils/safe';
 import { connectDB } from '../config/db';
 import { env, getPublicAppUrl } from '../config/env';
 import { sendEventEmail, sendBulkEventRegistrationEmails, emailIsConfigured } from '../lib/mailer';
@@ -961,7 +962,7 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
 
     const appUrl = getPublicAppUrl();
     const regUrl =
-      event.registrationLink ||
+      safeString(event.registrationLink) ||
       `${appUrl}/events/${event.eventId}`;
 
     const subject = `You're Invited! ${event.title} – GDGoC GCEE`;
@@ -976,12 +977,14 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
         to: student.email,
         studentName: student.name,
         event: {
-          title: event.title,
-          description: event.description,
-          date: event.date,
+          title: safeString(event.title),
+          description: safeString(event.description),
+          // Mongoose returns `date` as a Date object — render a human label,
+          // never pass the raw object into string-template code.
+          date: formatFullDate(event.date),
           time: formatTimeRange(event.startTime, event.endTime),
-          venue: event.venue || 'Government College of Engineering, Erode',
-          poster: event.banner || '',
+          venue: safeString(event.venue) || 'Government College of Engineering, Erode',
+          poster: safeString(event.banner),
           registrationLink: regUrl,
         },
       });

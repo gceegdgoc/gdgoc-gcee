@@ -13,7 +13,7 @@
  *   Verifies RESEND_API_KEY, validation, delivery, recipient and Reply-To.
  *   MUST NOT use Nodemailer.
  */
-import { env } from '../config/env';
+import { env, SITE_EMAIL } from '../config/env';
 import {
   isGmailConfigured,
   verifyGmailConnection,
@@ -21,7 +21,7 @@ import {
   sendContactUsNotification,
 } from '../services/emailService';
 
-const WEBSITE_GMAIL = 'gceegdgoc@gmail.com';
+const WEBSITE_GMAIL = SITE_EMAIL;
 const argTo = process.argv[2] || '';
 const to = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(argTo) ? argTo : env.gmail.user || env.adminEmail;
 

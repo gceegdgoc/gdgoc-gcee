@@ -68,6 +68,13 @@ export function getPublicAppUrl(): string {
   return devCandidate.trim().replace(/\/+$/, '');
 }
 
+/**
+ * The ONE official email address of the website.
+ * Used as the sender/from/reply-to for every website email and displayed
+ * anywhere the site shows a contact email. Override with SITE_EMAIL.
+ */
+export const SITE_EMAIL = (process.env.SITE_EMAIL || 'gceegdgoc@gmail.com').trim().toLowerCase();
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -78,18 +85,19 @@ export const env = {
   appUrl: getPublicAppUrl(),
   clientUrl: getPublicAppUrl(),
   cookieSecure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+  siteEmail: SITE_EMAIL,
   adminEmail: process.env.ADMIN_EMAIL || 'admin@gdgocgcee.in',
   adminPassword: process.env.ADMIN_PASSWORD || 'Admin@123',
   adminName: process.env.ADMIN_NAME || 'GDGoC GCEE Admin',
   gmail: {
-    user: (process.env.GMAIL_USER || 'gceegdgoc@gmail.com').trim().toLowerCase(),
+    user: (process.env.GMAIL_USER || SITE_EMAIL).trim().toLowerCase(),
     appPassword: (process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, ''),
   },
   resendApiKey: process.env.RESEND_API_KEY || '',
-  resendFromEmail: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+  resendFromEmail: (process.env.RESEND_FROM_EMAIL || SITE_EMAIL).trim().toLowerCase(),
   resendFromName: process.env.RESEND_FROM_NAME || 'GDGoC GCEE',
   // Where Contact Us (Resend) notifications are delivered.
-  contactRecipientEmail: (process.env.CONTACT_RECIPIENT_EMAIL || 'gceegdgoc@gmail.com').trim().toLowerCase(),
+  contactRecipientEmail: (process.env.CONTACT_RECIPIENT_EMAIL || SITE_EMAIL).trim().toLowerCase(),
   googleFormWebhookSecret: process.env.GOOGLE_FORM_WEBHOOK_SECRET || '',
   emailTestSecret: process.env.EMAIL_TEST_SECRET || '',
 };

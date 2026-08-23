@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import rateLimit from 'express-rate-limit';
-import { env } from '../config/env';
+import { env, SITE_EMAIL } from '../config/env';
 import {
   isGmailConfigured,
   verifyGmailConnection,
@@ -100,7 +100,7 @@ router.post('/test-email', devTestLimiter, async (req: Request, res: Response) =
     }
     results.testB_contact = {
       provider: 'Nodemailer → Gmail SMTP',
-      recipient: 'gceegdgoc@gmail.com',
+      recipient: SITE_EMAIL,
       replyTo: to,
       configured,
       sent: sendResult.success,

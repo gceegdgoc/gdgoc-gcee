@@ -393,7 +393,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
             <div className="rounded-lg border border-navy-100 p-3 space-y-1">
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Event</span><span className="font-semibold text-navy-900">{event.title || 'Event Name'}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Date</span><span className="text-navy-900">{formatHumanDate(event.date) || 'TBA'}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-ink-muted">Time</span><span className="text-navy-900">{event.startTime || 'TBA'}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-ink-muted">Time</span><span className="text-navy-900">{event.startTime || 'TBA'}{event.endTime ? ` – ${event.endTime}` : ''}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Venue</span><span className="text-navy-900">{event.venue || 'TBA'}</span></div>
             </div>
             <div className="text-center">

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, MapPin } from 'lucide-react';
 import { Logo } from '../ui/Logo';
+import { SITE_EMAIL } from '../../lib/site';
 
 const GithubIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -40,8 +41,8 @@ export function Footer() {
           </p>
           <div className="mt-5 flex gap-3">
             {[
-              { icon: GithubIcon, href: 'https://github.com/HARIESHV', label: 'GitHub' },
-              { icon: Mail, href: 'mailto:gceegdgoc@gmail.com', label: 'Email us' },
+              { icon: GithubIcon, href: 'https://github.com/gceegdgoc/gdgoc-gcee', label: 'GitHub' },
+              { icon: Mail, href: `mailto:${SITE_EMAIL}`, label: 'Email us' },
             ].map(({ icon: Icon, href, label }, i) => (
               <a
                 key={i}
@@ -81,7 +82,7 @@ export function Footer() {
             <span className="text-white/20">|</span>
             <span className="flex items-center gap-1">
               <Mail className="h-3.5 w-3.5" />
-              <a href="mailto:gceegdgoc@gmail.com" className="transition hover:text-white/70">gceegdgoc@gmail.com</a>
+              <a href={`mailto:${SITE_EMAIL}`} className="transition hover:text-white/70">{SITE_EMAIL}</a>
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" /> Erode, Tamil Nadu

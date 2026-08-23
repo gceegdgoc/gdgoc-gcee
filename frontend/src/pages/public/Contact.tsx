@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, MapPin, Clock3, Send, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api, getErrorMessage } from '../../lib/api';
+import { SITE_EMAIL } from '../../lib/site';
 
 const MAPS_URL = 'https://www.google.com/maps/search/Government+College+of+Engineering+Erode+Vasavi+College+Post+Erode+638316+Tamil+Nadu+India';
 const MAPS_EMBED = 'https://maps.google.com/maps?q=Government+College+of+Engineering+Erode+Vasavi+College+Post+Erode+638316+Tamil+Nadu+India&t=&z=15&ie=UTF8&iwloc=&output=embed';
@@ -84,7 +85,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="font-semibold text-navy-900">Email</p>
-                <p className="mt-0.5 text-sm text-ink-soft">gceegdgoc@gmail.com</p>
+                <p className="mt-0.5 text-sm text-ink-soft">{SITE_EMAIL}</p>
                 <p className="mt-0.5 text-xs text-ink-faint">For general inquiries</p>
               </div>
             </div>

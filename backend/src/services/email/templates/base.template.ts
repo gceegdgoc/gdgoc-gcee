@@ -1,7 +1,8 @@
 import { env, CLUB, getPublicAppUrl } from '../../../config/env';
+import { safeString } from '../../../utils/safe';
 
-export function escapeHtml(str: string): string {
-  return (str || '')
+export function escapeHtml(value: unknown): string {
+  return safeString(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

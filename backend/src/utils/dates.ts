@@ -135,11 +135,21 @@ export function isISTToday(dateStr: string): boolean {
 }
 
 /**
- * Normalizes any date string (YYYY-MM-DD, DD-MM-YYYY, ISO) to standard YYYY-MM-DD.
+ * Normalizes any date input (YYYY-MM-DD, DD-MM-YYYY, ISO string, or a real
+ * JavaScript Date — e.g. straight off a Mongoose document) to YYYY-MM-DD.
  * Returns empty string if invalid or missing.
  */
-export function normalizeDateToISO(dateStr?: string): string {
-  if (!dateStr || typeof dateStr !== 'string') return '';
+export function normalizeDateToISO(dateStr?: string | Date | null): string {
+  if (!dateStr) return '';
+
+  // Mongoose returns schema dates as real Date objects; extract the UTC
+  // calendar day (dates are stored as UTC midnight of their calendar day).
+  if (dateStr instanceof Date) {
+    if (Number.isNaN(dateStr.getTime())) return '';
+    return dateStr.toISOString().slice(0, 10);
+  }
+  if (typeof dateStr !== 'string') return '';
+
   const trimmed = dateStr.trim();
   if (!trimmed) return '';
 
@@ -186,8 +196,11 @@ export function normalizeDateToISO(dateStr?: string): string {
   return '';
 }
 
-export function normalizeDate(dateStr: string): string {
-  return normalizeDateToISO(dateStr) || (dateStr ? dateStr.slice(0, 10) : '');
+export function normalizeDate(dateStr: string | Date | null | undefined): string {
+  const iso = normalizeDateToISO(dateStr);
+  if (iso) return iso;
+  const s = typeof dateStr === 'string' ? dateStr : '';
+  return s ? s.slice(0, 10) : '';
 }
 
 /**

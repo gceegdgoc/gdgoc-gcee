@@ -17,6 +17,23 @@ const emptyForm = {
   photo: '', github: '', linkedin: '', instagram: '', twitter: '' 
 };
 
+/** Social links are optional; a non-empty value must be a real http(s) URL. */
+const SOCIAL_FIELDS: Array<{ key: 'github' | 'linkedin' | 'instagram' | 'twitter'; label: string; example: string }> = [
+  { key: 'github', label: 'GitHub', example: 'https://github.com/username' },
+  { key: 'linkedin', label: 'LinkedIn', example: 'https://www.linkedin.com/in/username' },
+  { key: 'instagram', label: 'Instagram', example: 'https://www.instagram.com/username' },
+  { key: 'twitter', label: 'Twitter', example: 'https://twitter.com/username' },
+];
+
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,9 +97,16 @@ export default function AdminMembers() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.phone || !form.registerNumber || !form.college) {
-      toast.error('Please fill in all required fields (Name, Email, Phone, Register Number, College).');
+    if (!form.name || !form.email || !form.college) {
+      toast.error('Please fill in all required fields (Name, Email, College).');
       return;
+    }
+    for (const { key, label, example } of SOCIAL_FIELDS) {
+      const value = form[key].trim();
+      if (value && !isValidHttpUrl(value)) {
+        toast.error(`${label} URL must be a valid URL (e.g. ${example}).`);
+        return;
+      }
     }
     setBusy(true);
     const payload = {

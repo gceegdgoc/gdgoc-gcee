@@ -31,6 +31,7 @@ import { CountUp } from '../../components/ui/CountUp';
 import { PageLoader } from '../../components/ui/Spinner';
 import { api, getErrorMessage } from '../../lib/api';
 import { formatHumanDate, cn, getEffectiveEventStatus } from '../../lib/utils';
+import { SITE_EMAIL } from '../../lib/site';
 import type { GEvent, GalleryItem, Member } from '../../types';
 
 const whyJoin = [
@@ -407,7 +408,7 @@ export default function Home() {
                 <div className="mt-6 flex flex-col items-center gap-3 text-sm text-ink-soft sm:flex-row sm:justify-center">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-g-blue" />
-                    <span>gceegdgoc@gmail.com</span>
+                    <span>{SITE_EMAIL}</span>
                   </div>
                   <div className="hidden h-1 w-1 rounded-full bg-ink-faint sm:block" />
                   <div className="flex items-center gap-2">
@@ -420,7 +421,7 @@ export default function Home() {
                     Contact us
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                  <a href="mailto:gceegdgoc@gmail.com" className="btn-outline">
+                  <a href={`mailto:${SITE_EMAIL}`} className="btn-outline">
                     <Mail className="h-4 w-4" />
                     Send email
                   </a>

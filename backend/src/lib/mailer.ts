@@ -14,6 +14,7 @@ import {
   type EmailSendResult as SendMailResult,
 } from '../services/emailService';
 import { env, CLUB } from '../config/env';
+import { safeString } from '../utils/safe';
 
 export {
   sendGmailEmail as sendEmail,
@@ -105,13 +106,13 @@ export function getEmailConfigStatus() {
     hasUser: Boolean(env.gmail.user),
     hasFromEmail: Boolean(env.gmail.user),
     hasAppPassword: Boolean(env.gmail.appPassword),
-    adminEmail: env.contactRecipientEmail || 'gceegdgoc@gmail.com',
+    adminEmail: env.contactRecipientEmail || env.siteEmail,
     fromEmail: env.gmail.user || '',
   };
 }
 
-export function escapeHtml(str: string): string {
-  return (str || '')
+export function escapeHtml(value: unknown): string {
+  return safeString(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

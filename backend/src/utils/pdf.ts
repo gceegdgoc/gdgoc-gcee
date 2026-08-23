@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { formatFullDate } from './dates';
+import { safeString } from './safe';
 
 export interface CertificatePdfData {
   certificateId: string;
@@ -505,7 +506,7 @@ export async function generateRegistrationListPDFBuffer(opts: {
     }
 
     doc.font('Helvetica').fontSize(7.5).fillColor('#1e293b');
-    const idLabel = s.registrationId ? s.registrationId.replace(/^REG-/, '') : String(i + 1);
+    const idLabel = safeString(s.registrationId).replace(/^REG-/, '') || String(i + 1);
     doc.text(idLabel, cols[0].x, y + 2, { width: cols[0].w, ellipsis: true });
     doc.font('Helvetica-Bold').fontSize(7.5).text(s.name || '—', cols[1].x, y + 2, { width: cols[1].w, ellipsis: true });
     doc.font('Helvetica').fontSize(7.5).text(s.year || '—', cols[2].x, y + 2, { width: cols[2].w, ellipsis: true });

@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import mongoose from 'mongoose';
 import { Member, TEAMS } from '../models';
 import { connectDB } from '../config/db';
+import { safeString, isValidHttpUrl } from '../utils/safe';
 
 function serialize(m: any) {
   return {
@@ -55,6 +56,29 @@ function validationError(res: Response, errors: Record<string, string>) {
 
 const asTrimmedString = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Social links are OPTIONAL: empty strings are always accepted, but a
+ * non-empty value must be a real http(s) URL. Field-specific errors keep the
+ * dashboard toast actionable.
+ */
+function validateSocialLinks(
+  links: Record<string, string>,
+  errors: Record<string, string>
+) {
+  const labels: Record<string, string> = {
+    github: 'GitHub URL must be a valid URL (e.g. https://github.com/username).',
+    linkedin: 'LinkedIn URL must be a valid URL (e.g. https://www.linkedin.com/in/username).',
+    instagram: 'Instagram URL must be a valid URL (e.g. https://www.instagram.com/username).',
+    twitter: 'Twitter URL must be a valid URL (e.g. https://twitter.com/username).',
+  };
+  for (const [key, message] of Object.entries(labels)) {
+    const value = safeString(links[key]).trim();
+    if (value && !isValidHttpUrl(value)) {
+      errors[`socialLinks.${key}`] = message;
+    }
+  }
+}
 
 function normalizeSocialLinks(input: any): Record<string, string> {
   const src = input && typeof input === 'object' ? input : {};
@@ -131,6 +155,7 @@ export async function createMember(req: any, res: Response) {
     if (!data.name) errors.name = 'Member name is required.';
     if (!data.email) errors.email = 'Email is required.';
     else if (!EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
+    validateSocialLinks(data.socialLinks, errors);
     if (Object.keys(errors).length > 0) {
       logAdminAction('POST /api/admin/members [invalid]', req, data);
       validationError(res, errors);
@@ -187,6 +212,7 @@ export async function updateMember(req: any, res: Response) {
     if (!data.name && member.name) errors.name = 'Member name is required.';
     if (!data.email && member.email) errors.email = 'Email is required.';
     else if (data.email && !EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
+    validateSocialLinks(data.socialLinks, errors);
     if (Object.keys(errors).length > 0) {
       logAdminAction(`PUT /api/admin/members/${req.params.id} [invalid]`, req, data);
       validationError(res, errors);
