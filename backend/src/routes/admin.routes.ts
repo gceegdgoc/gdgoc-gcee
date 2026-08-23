@@ -97,11 +97,6 @@ import {
   deleteEventRegistration,
   clearEventRegistrations,
 } from '../controllers/registration.controller';
-import {
-  getBulkEmailRecipients,
-  sendBulkEmailToAll,
-  getBulkEmailLogs,
-} from '../controllers/bulkEmail.controller';
 
 const router = Router();
 
@@ -212,10 +207,5 @@ router.delete('/resources/:id', deleteResource);
 router.get('/form-registrations', adminListFormRegistrations);
 router.get('/form-registrations/:id', adminGetFormRegistration);
 router.patch('/form-registrations/:id/read', adminMarkFormRegistrationRead);
-
-// Bulk Email
-router.get('/bulk-email/recipients', getBulkEmailRecipients);
-router.post('/bulk-email/send', sendBulkEmailToAll);
-router.get('/bulk-email/logs', getBulkEmailLogs);
 
 export default router;
