@@ -86,6 +86,51 @@ export interface SendingHistoryStats {
   pending: number;
 }
 
+/** One row of GET /api/admin/events/:eventId/sending-history */
+export interface SendingHistoryRow extends SendingHistoryEntry {
+  eventName?: string | null;
+  /** Legacy rows may predate these fields — null when missing. */
+  recipientCount?: number | null;
+  sentCount?: number | null;
+  failedCount?: number | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+}
+
+/** GET /api/admin/events/:eventId/sending-history response */
+export interface SendingHistoryResponse {
+  success: boolean;
+  history: SendingHistoryRow[];
+  total: number;
+  page: number;
+  totalPages: number;
+  stats: SendingHistoryStats;
+}
+
+/** GET /api/admin/events/:eventId/verified-count response */
+export interface VerifiedStudentCountResponse {
+  success: boolean;
+  count: number;
+}
+
+/** POST /api/admin/events/:eventId/send-to-all response */
+export interface SendEventToAllResponse {
+  success: boolean;
+  message?: string;
+  alreadySent?: boolean;
+  /** Exact eligible-recipient count resolved before the batch started. */
+  recipientCount?: number;
+  sentCount?: number;
+  failedCount?: number;
+  totalRecipients?: number;
+  status?: 'Success' | 'Partial' | 'Failure';
+  failedEmails?: string[];
+  startedAt?: string;
+  completedAt?: string;
+  emailSentAt?: string | null;
+  emailSentCount?: number;
+}
+
 export interface AttendanceRecord {
   id: string;
   eventId?: string;
@@ -170,6 +215,69 @@ export interface Member {
     instagram?: string;
     twitter?: string;
   };
+}
+
+/** POST/PUT /api/admin/members request body (social URLs are optional). */
+export interface MemberPayload {
+  name: string;
+  email: string;
+  phone: string;
+  college: string;
+  registerNumber: string;
+  skills: string;
+  areasOfInterest: string;
+  whyJoin: string;
+  team: string;
+  role: string;
+  department: string;
+  year: string;
+  photo: string;
+  socialLinks: {
+    github: string;
+    linkedin: string;
+    instagram: string;
+    twitter: string;
+  };
+}
+
+/** POST/PUT /api/admin/members response */
+export interface MemberSaveResponse {
+  success: boolean;
+  message: string;
+  member: Member;
+}
+
+/** POST /api/admin/certificates/quick-generate request body */
+export interface QuickGenerateCertificateRequest {
+  studentName: string;
+  studentEmail?: string;
+  /** Real MongoDB Event _id — required, never an event name or business code. */
+  eventId: string;
+  eventName?: string;
+  eventDate?: string;
+  sendEmail?: boolean;
+}
+
+/** POST /api/admin/certificates/quick-generate response */
+export interface QuickGenerateCertificateResponse {
+  success: boolean;
+  message: string;
+  certificate: Certificate;
+  emailSent: boolean;
+  emailError?: string;
+}
+
+/** Row of GET /api/admin/events/:eventId/registrations */
+export interface EventRegistrationRow {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  year?: string;
+  college?: string;
+  registeredAt?: string;
+  source: 'form' | 'direct' | 'manual' | (string & {});
 }
 
 export interface CoordinatorRole {

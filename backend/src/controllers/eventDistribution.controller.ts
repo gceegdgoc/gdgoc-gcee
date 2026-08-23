@@ -140,9 +140,31 @@ export async function sendEventRegistrationPDFToAll(req: any, res: Response) {
     });
 
     const filename = `${event.eventId}-registrations.pdf`;
+    // Resolved BEFORE any history record is created — recipientCount is required.
+    const recipientCount = studentsWithEmail.length;
+    const subject = `${event.title} – Student Registration List / Event Document`;
+    const batchStartedAt = new Date();
     let sent = 0;
     let failed = 0;
     const failedEmails: string[] = [];
+
+    /** History writes must never abort the remaining sends; log and continue. */
+    const recordHistory = async (entry: Record<string, unknown>) => {
+      try {
+        await SendingHistory.create({
+          eventId: event._id,
+          eventName: event.title || '',
+          eventType: 'registration-list-pdf',
+          subject,
+          recipientCount,
+          startedAt: batchStartedAt,
+          sentAt: new Date(),
+          ...entry,
+        });
+      } catch (historyErr: any) {
+        console.error('[eventDistribution] Failed to write SendingHistory entry:', historyErr.message);
+      }
+    };
 
     // Send individual emails to each student (never to admin, never using CC/BCC)
     for (const student of studentsWithEmail) {
@@ -159,27 +181,25 @@ export async function sendEventRegistrationPDFToAll(req: any, res: Response) {
       if (result.error) {
         failed++;
         failedEmails.push(`${student.email}: ${result.error}`);
-        await SendingHistory.create({
-          eventId: event._id,
-          eventType: 'registration-list-pdf',
+        await recordHistory({
           recipientEmail: student.email,
           recipientName: student.name,
-          subject: `${event.title} – Student Registration List / Event Document`,
           status: 'failed',
           errorMessage: result.error,
-          sentAt: new Date(),
+          completedAt: new Date(),
+          sentCount: 0,
+          failedCount: 1,
         });
       } else {
         sent++;
-        await SendingHistory.create({
-          eventId: event._id,
-          eventType: 'registration-list-pdf',
+        await recordHistory({
           recipientEmail: student.email,
           recipientName: student.name,
-          subject: `${event.title} – Student Registration List / Event Document`,
           status: 'sent',
           resendId: result.id || '',
-          sentAt: new Date(),
+          completedAt: new Date(),
+          sentCount: 1,
+          failedCount: 0,
         });
       }
     }
@@ -249,9 +269,31 @@ export async function sendEventEmails(req: any, res: Response) {
     const gmailMailer = getResendCompatibleMailer();
     const fromAddress = getFromAddress();
 
+    // Resolved BEFORE any history record is created — recipientCount is required.
+    const recipientCount = studentsWithEmail.length;
+    const batchStartedAt = new Date();
+
     let sent = 0;
     let failed = 0;
     const errors: string[] = [];
+
+    /** History writes must never abort the remaining sends; log and continue. */
+    const recordHistory = async (entry: Record<string, unknown>) => {
+      try {
+        await SendingHistory.create({
+          eventId: event._id,
+          eventName: event.title || '',
+          eventType: type || 'event-email',
+          subject,
+          recipientCount,
+          startedAt: batchStartedAt,
+          sentAt: new Date(),
+          ...entry,
+        });
+      } catch (historyErr: any) {
+        console.error('[eventDistribution] Failed to write SendingHistory entry:', historyErr.message);
+      }
+    };
 
     for (const student of studentsWithEmail) {
       const safeName = escapeHtml(student.name);
@@ -283,41 +325,38 @@ export async function sendEventEmails(req: any, res: Response) {
         if (error) {
           failed++;
           errors.push(`${student.email}: ${error.message}`);
-          await SendingHistory.create({
-            eventId: event._id,
-            eventType: type || 'event-email',
+          await recordHistory({
             recipientEmail: student.email,
             recipientName: student.name,
-            subject,
             status: 'failed',
             errorMessage: error.message || 'Send failed',
-            sentAt: new Date(),
+            completedAt: new Date(),
+            sentCount: 0,
+            failedCount: 1,
           });
         } else {
           sent++;
-          await SendingHistory.create({
-            eventId: event._id,
-            eventType: type || 'event-email',
+          await recordHistory({
             recipientEmail: student.email,
             recipientName: student.name,
-            subject,
             status: 'sent',
             resendId: data?.id || '',
-            sentAt: new Date(),
+            completedAt: new Date(),
+            sentCount: 1,
+            failedCount: 0,
           });
         }
       } catch (err: any) {
         failed++;
         errors.push(`${student.email}: ${err.message}`);
-        await SendingHistory.create({
-          eventId: event._id,
-          eventType: type || 'event-email',
+        await recordHistory({
           recipientEmail: student.email,
           recipientName: student.name,
-          subject,
           status: 'failed',
           errorMessage: err.message,
-          sentAt: new Date(),
+          completedAt: new Date(),
+          sentCount: 0,
+          failedCount: 1,
         });
       }
     }
@@ -379,6 +418,13 @@ export async function getEventSendingHistory(req: any, res: Response) {
         status: h.status,
         errorMessage: h.errorMessage,
         sentAt: h.sentAt,
+        // Legacy rows (pre-migration) may lack these — null, never undefined/crash.
+        eventName: h.eventName ?? null,
+        recipientCount: typeof h.recipientCount === 'number' ? h.recipientCount : null,
+        sentCount: typeof h.sentCount === 'number' ? h.sentCount : null,
+        failedCount: typeof h.failedCount === 'number' ? h.failedCount : null,
+        startedAt: h.startedAt ?? null,
+        completedAt: h.completedAt ?? null,
       })),
       total,
       page,

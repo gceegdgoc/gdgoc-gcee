@@ -901,14 +901,24 @@ export async function adminDeleteEvent(req: any, res: Response) {
   }
 }
 
+/** Same shape as the JS-side email filter below, usable inside MongoDB queries. */
+const VALID_EMAIL_QUERY = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // GET /api/admin/events/:eventId/verified-count
-// Number of verified students who would receive the event email.
+// Number of verified students with a VALID email address who would receive the
+// event email. Mirrors the recipient filter in sendEventRegistrationEmailToStudents
+// so the admin progress UI shows the real total ("Progress: 0 / N").
 export async function getVerifiedStudentCount(req: any, res: Response) {
   try {
     await connectDB();
-    const count = await Student.countDocuments({ isActive: true, isVerified: true });
+    const count = await Student.countDocuments({
+      isActive: true,
+      isVerified: true,
+      email: { $exists: true, $type: 'string', $regex: VALID_EMAIL_QUERY.source, $options: 'i' },
+    });
     res.json({ success: true, count });
   } catch (err: any) {
+    console.error('[event] getVerifiedStudentCount error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -951,12 +961,15 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
     }
 
     const targetStudents = await Student.find(filter).lean();
+
+    // Recipients are resolved and counted BEFORE any SendingHistory record is
+    // created — recipientCount is a required field and must always be exact.
     const recipients = targetStudents
-      .filter((s) => s.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email))
+      .filter((s) => typeof s.email === 'string' && s.email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim()))
       .map((s) => ({ email: s.email.toLowerCase(), name: s.name || 'Student' }));
 
     if (recipients.length === 0) {
-      res.status(400).json({ success: false, message: 'No verified students found for the selected criteria.' });
+      res.status(400).json({ success: false, message: 'No verified students with valid email addresses found.' });
       return;
     }
 
@@ -966,10 +979,32 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
       `${appUrl}/events/${event.eventId}`;
 
     const subject = `You're Invited! ${event.title} – GDGoC GCEE`;
+    const eventName = safeString(event.title) || safeString(event.eventId);
+    const batchStartedAt = new Date();
+    // Exact number of eligible recipients — stored on every history record.
+    const recipientCount = recipients.length;
 
     let sentCount = 0;
     let failedCount = 0;
     const failedEmails: string[] = [];
+
+    /** History writes must never abort the remaining sends; log and continue. */
+    const recordHistory = async (entry: Record<string, unknown>) => {
+      try {
+        await SendingHistory.create({
+          eventId: event._id,
+          eventName,
+          eventType: 'event-invite',
+          subject,
+          recipientCount,
+          startedAt: batchStartedAt,
+          sentAt: new Date(),
+          ...entry,
+        });
+      } catch (historyErr: any) {
+        console.error('[event] Failed to write SendingHistory entry:', historyErr.message);
+      }
+    };
 
     // Send one email per student (privacy-safe — no To/CC/BCC with other addresses)
     for (const student of recipients) {
@@ -989,30 +1024,29 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
         },
       });
 
+      const completedAt = new Date();
       if (result.success) {
         sentCount++;
-        await SendingHistory.create({
-          eventId: event._id,
-          eventType: 'event-invite',
+        await recordHistory({
           recipientEmail: student.email,
           recipientName: student.name,
-          subject,
           status: 'sent',
           resendId: result.id || '',
-          sentAt: new Date(),
+          completedAt,
+          sentCount: 1,
+          failedCount: 0,
         });
       } else {
         failedCount++;
         failedEmails.push(student.email);
-        await SendingHistory.create({
-          eventId: event._id,
-          eventType: 'event-invite',
+        await recordHistory({
           recipientEmail: student.email,
           recipientName: student.name,
-          subject,
           status: 'failed',
           errorMessage: result.error || 'Send failed',
-          sentAt: new Date(),
+          completedAt,
+          sentCount: 0,
+          failedCount: 1,
         });
       }
     }
@@ -1026,13 +1060,17 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
     res.json({
       success: true,
       message: `Event email sent. Successfully sent: ${sentCount}, Failed: ${failedCount}.`,
+      recipientCount,
       sentCount,
       failedCount,
       totalRecipients: recipients.length,
       status: failedCount === 0 ? 'Success' : sentCount > 0 ? 'Partial' : 'Failure',
       failedEmails: failedEmails.slice(0, 50),
+      startedAt: batchStartedAt.toISOString(),
+      completedAt: new Date().toISOString(),
     });
   } catch (err: any) {
+    console.error('[event] sendEventRegistrationEmailToStudents error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }

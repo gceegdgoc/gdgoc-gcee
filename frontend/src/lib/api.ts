@@ -61,6 +61,21 @@ export function getErrorMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
+/**
+ * Extract per-field validation errors from a 4xx API response so forms can
+ * render them beside the exact invalid field (e.g. `socialLinks.github`).
+ */
+export function getFieldErrors(err: unknown): Record<string, string> {
+  if (!axios.isAxiosError(err)) return {};
+  const data = err.response?.data as ApiError | undefined;
+  if (!data || !data.errors || typeof data.errors !== 'object') return {};
+  const out: Record<string, string> = {};
+  for (const [key, msg] of Object.entries(data.errors)) {
+    if (typeof msg === 'string' && msg.trim()) out[key] = msg.trim();
+  }
+  return out;
+}
+
 export function isAuthError(err: unknown): boolean {
   return axios.isAxiosError(err) && err.response?.status === 401;
 }

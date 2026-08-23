@@ -23,7 +23,13 @@ import { EventForm } from '../../components/admin/EventForm';
 import { api, getErrorMessage, downloadPdf } from '../../lib/api';
 import { formatHumanDate, cn, downloadBlob, getEffectiveEventStatus } from '../../lib/utils';
 import { SITE_EMAIL } from '../../lib/site';
-import type { GEvent } from '../../types';
+import type {
+  GEvent,
+  SendEventToAllResponse,
+  SendingHistoryResponse,
+  VerifiedStudentCountResponse,
+  EventRegistrationRow,
+} from '../../types';
 
 type Tab = 'details' | 'registrations' | 'email';
 
@@ -154,7 +160,7 @@ export default function AdminEventDetail() {
 
 function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => void }) {
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SendEventToAllResponse | null>(null);
   const [confirmResend, setConfirmResend] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -173,11 +179,13 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
     let baseDone = 0;
     let total = 0;
 
-    // Baseline + verified count so we can show "sent / total" progress while the batch runs.
+    // Baseline + eligible-recipient count so we can show "sent / total" while
+    // the batch runs. `verified-count` mirrors the backend recipient filter
+    // (verified students with a valid email) — never hard-coded.
     try {
       const [baseRes, countRes] = await Promise.all([
-        api.get(`/admin/events/${event.eventId}/sending-history`, { params: { eventType: 'event-invite', limit: 1 } }),
-        api.get(`/admin/events/${event.eventId}/verified-count`),
+        api.get<SendingHistoryResponse>(`/admin/events/${event.eventId}/sending-history`, { params: { eventType: 'event-invite', limit: 1 } }),
+        api.get<VerifiedStudentCountResponse>(`/admin/events/${event.eventId}/verified-count`),
       ]);
       baseDone = (baseRes.data.stats?.sent || 0) + (baseRes.data.stats?.failed || 0);
       total = countRes.data.count || 0;
@@ -185,11 +193,11 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
 
       pollRef.current = setInterval(async () => {
         try {
-          const cur = await api.get(`/admin/events/${event.eventId}/sending-history`, {
+          const cur = await api.get<SendingHistoryResponse>(`/admin/events/${event.eventId}/sending-history`, {
             params: { eventType: 'event-invite', limit: 1 },
           });
           const done = (cur.data.stats?.sent || 0) + (cur.data.stats?.failed || 0) - baseDone;
-          setProgress({ done: Math.max(done, 0), total });
+          setProgress((prev) => ({ done: Math.max(done, 0), total: prev?.total ?? total }));
         } catch {
           /* ignore transient polling errors */
         }
@@ -200,15 +208,21 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
     }
 
     try {
-      const res = await api.post(`/admin/events/${event.eventId}/send-to-all`, force ? { force: true } : {});
+      const res = await api.post<SendEventToAllResponse>(`/admin/events/${event.eventId}/send-to-all`, force ? { force: true } : {});
       stopPolling();
-      setProgress(null);
       setResult(res.data);
       if (res.data.alreadySent && !force) {
+        setProgress(null);
         return;
       }
-      toast.success(`Event email sent to ${res.data.sentCount} student(s)!`);
-      if (res.data.failedCount > 0) {
+      // Final state uses the server-reported real counts.
+      const finalTotal = res.data.totalRecipients ?? res.data.recipientCount ?? total;
+      setProgress({
+        done: (res.data.sentCount || 0) + (res.data.failedCount || 0),
+        total: finalTotal,
+      });
+      toast.success(`Event email sent to ${res.data.sentCount} of ${finalTotal} student(s)!`);
+      if (res.data.failedCount && res.data.failedCount > 0) {
         toast(`${res.data.failedCount} email(s) failed.`, {
           icon: '⚠️',
           style: { background: '#0b1b33', color: '#fde047' },
@@ -328,9 +342,11 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
           <div className="flex items-center gap-3">
             <Loader2 className="h-5 w-5 animate-spin text-g-blue" />
             <div>
-              <p className="font-display text-sm font-bold text-navy-900">Sending event email…</p>
+              <p className="font-display text-sm font-bold text-navy-900">
+                {progress.total > 0 && progress.done >= progress.total ? 'All emails processed!' : 'Sending event email…'}
+              </p>
               <p className="text-xs text-ink-muted">
-                Progress: {progress.done} / {progress.total || '…'}
+                {progress.done} / {progress.total > 0 ? progress.total : '…'} emails sent
               </p>
             </div>
           </div>

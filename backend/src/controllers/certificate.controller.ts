@@ -262,20 +262,21 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     // actual Event _id, never a display label or business code like "EV-2026-0001".
     const eventRecord = await EventModel.findById(eventId).lean();
     if (!eventRecord) {
-      res.status(400).json({
+      res.status(404).json({
         success: false,
-        message: 'Selected event no longer exists. Please pick another event.',
-        errors: { eventId: 'Selected event no longer exists. Please pick another event.' },
+        message: 'Selected event does not exist. Please pick another event.',
+        errors: { eventId: 'Selected event does not exist. Please pick another event.' },
       });
       return;
     }
 
     // ── 2. Canonical values come from the DATABASE record ────────────────
-    // eventName/eventDate from the form are only fallbacks. Dates are
-    // normalized to YYYY-MM-DD regardless of how the client formatted them.
+    // The backend is the source of truth: once a real event is resolved, its
+    // stored title/date always win. Client-supplied values are only fallbacks
+    // for legacy callers that pass raw strings without an eventId.
     const cleanEventId = eventRecord._id;
-    const cleanEventName = safeString(eventName).trim() || safeString(eventRecord.title).trim();
-    const cleanEventDate = normalizeDateToISO(safeString(eventDate)) || normalizeDateToISO(safeString(eventRecord.date));
+    const cleanEventName = safeString(eventRecord.title).trim() || safeString(eventName).trim();
+    const cleanEventDate = normalizeDateToISO(eventRecord.date) || normalizeDateToISO(safeString(eventDate));
 
     if (!cleanEventName) {
       res.status(400).json({
