@@ -63,6 +63,7 @@ export default function AdminMembers() {
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
+    setFieldErrors({});
     setModal(true);
   };
 
@@ -87,6 +88,7 @@ export default function AdminMembers() {
       instagram: m.socialLinks?.instagram || '',
       twitter: m.socialLinks?.twitter || '',
     });
+    setFieldErrors({});
     setModal(true);
   };
 
@@ -99,19 +101,27 @@ export default function AdminMembers() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
     if (!form.name || !form.email || !form.college) {
       toast.error('Please fill in all required fields (Name, Email, College).');
       return;
     }
+    // Optional social URLs: empty is always valid; a non-empty value must be a
+    // real http(s) URL. Invalid values are surfaced per-field below the input.
+    const clientErrors: Record<string, string> = {};
     for (const { key, label, example } of SOCIAL_FIELDS) {
       const value = form[key].trim();
       if (value && !isValidHttpUrl(value)) {
-        toast.error(`${label} URL must be a valid URL (e.g. ${example}).`);
-        return;
+        clientErrors[`socialLinks.${key}`] = `${label} URL must be a valid URL (e.g. ${example}).`;
       }
     }
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      toast.error('Validation failed. Please check the highlighted fields.');
+      return;
+    }
     setBusy(true);
-    const payload = {
+    const payload: MemberPayload = {
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -125,7 +135,7 @@ export default function AdminMembers() {
       department: form.department,
       year: form.year,
       photo: form.photo,
-      socialLinks: { github: form.github, linkedin: form.linkedin, instagram: form.instagram, twitter: form.twitter },
+      socialLinks: { github: form.github.trim(), linkedin: form.linkedin.trim(), instagram: form.instagram.trim(), twitter: form.twitter.trim() },
     };
     try {
       const res = editing
@@ -135,6 +145,11 @@ export default function AdminMembers() {
       setModal(false);
       loadMembers();
     } catch (err) {
+      // Render backend field errors beside the exact invalid field.
+      const errors = getFieldErrors(err);
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+      }
       toast.error(getErrorMessage(err));
     } finally {
       setBusy(false);
