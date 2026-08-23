@@ -35,7 +35,7 @@ export async function adminLogin(req: any, res: Response) {
     }
 
     const admin = await Admin.findOne({ email: email.toLowerCase() });
-    if (!admin || !admin.isActive) {
+    if (!admin || admin.isActive === false) {
       res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
       return;
     }
