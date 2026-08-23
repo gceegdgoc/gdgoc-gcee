@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import { Resend } from 'resend';
 import { env, CLUB, SITE_EMAIL } from '../config/env';
 import { baseEmailHtml, escapeHtml } from './email/templates/base.template';
 import { generateOtpEmailHtml } from './email/templates/otp.template';
@@ -8,22 +7,33 @@ import { generateWelcomeEmailHtml } from './email/templates/welcome.template';
 import { generateEventRegistrationEmailHtml } from './email/templates/eventRegistration.template';
 import { generateAnnouncementEmailHtml } from './email/templates/announcement.template';
 import { generateCertificateEmailHtml } from './email/templates/certificate.template';
+import {
+  sendViaResend,
+  isResendConfigured as isResendTransportConfigured,
+  isResendSenderReady,
+} from './email/resend';
 
 /**
  * GDGoC GCEE — central email service.
  *
- * STRICT PROVIDER SEPARATION:
- *   1. ALL normal website emails (registration, verification, password reset,
- *      event confirmations, notifications, announcements, bulk email…)
- *        → Nodemailer → Gmail SMTP (smtp.gmail.com:465) → gceegdgoc@gmail.com
- *   2. Contact Us form ONLY
- *        → Resend API → gceegdgoc@gmail.com
+ * ALL website emails are dispatched through ONE central function
+ * (`sendWebsiteEmail`) which routes every message server-side:
  *
- * This is the ONLY file that configures SMTP or Resend credentials.
- * Secrets are read from environment variables and never leave the server.
+ *   1. PRIMARY   → Resend REST API (RESEND_API_KEY / RESEND_FROM_EMAIL),
+ *                  used only when the sender domain is verified on the
+ *                  Resend account so delivery to student inboxes succeeds.
+ *   2. FALLBACK  → Nodemailer → Gmail SMTP (GMAIL_USER / GMAIL_APP_PASSWORD).
+ *                  Keeps registration/OTP working until the Resend domain
+ *                  is verified, and rescues any runtime Resend failure.
+ *
+ * Provider selection can be forced with EMAIL_PROVIDER=resend|gmail.
+ * Secrets live only in environment variables and never leave the server.
  */
 
 const WEBSITE_GMAIL_ADDRESS = SITE_EMAIL;
+
+// Re-export so existing call-sites keep their single import source.
+export { isResendConfigured } from './email/resend';
 
 // ── Shared header-injection / input sanitization helpers ─────────────
 
@@ -198,20 +208,53 @@ export async function verifyGmailConnection(): Promise<{ ok: boolean; error?: st
   }
 }
 
-// ── 2. Resend (Contact Us form ONLY) ─────────────────────────────────
+// ── 2. Central provider dispatcher (Resend primary, Gmail SMTP fallback) ──
 
-let resendInstance: Resend | null = null;
+/**
+ * Send a NORMAL website email through the central dispatcher.
+ *
+ * - EMAIL_PROVIDER=gmail  → always Gmail SMTP.
+ * - EMAIL_PROVIDER=resend → always Resend (failure is returned, not masked).
+ * - auto (default)        → Resend when configured AND its sender domain is
+ *   verified; otherwise — or on runtime failure — Gmail SMTP. Messages with
+ *   attachments always use Gmail SMTP (Resend path does not handle them).
+ */
+export async function sendWebsiteEmail(opts: GmailMailOptions): Promise<EmailSendResult> {
+  const forced = (process.env.EMAIL_PROVIDER || 'auto').trim().toLowerCase();
 
-export function isResendConfigured(): boolean {
-  return Boolean(env.resendApiKey);
-}
-
-function getResendClient(): Resend | null {
-  if (!isResendConfigured()) return null;
-  if (!resendInstance) {
-    resendInstance = new Resend(env.resendApiKey);
+  // Attachments are only supported on the SMTP path.
+  if (forced !== 'resend' && opts.attachments && opts.attachments.length > 0) {
+    return sendGmailEmail(opts);
   }
-  return resendInstance;
+
+  if (forced === 'gmail') {
+    return sendGmailEmail(opts);
+  }
+
+  if (isResendTransportConfigured()) {
+    const senderReady = await isResendSenderReady();
+    if (senderReady || forced === 'resend') {
+      const result = await sendViaResend({
+        to: opts.to,
+        subject: opts.subject,
+        html: opts.html,
+        text: opts.text || htmlToText(opts.html),
+        replyTo: opts.replyTo,
+      });
+      if (result.success) {
+        return result;
+      }
+      if (forced === 'resend') {
+        // Explicit provider override: surface the failure, never mask it.
+        return result;
+      }
+      console.warn('[emailService] Resend send failed — falling back to Gmail SMTP:', result.error);
+    }
+  } else if (forced === 'resend') {
+    return { success: false, error: 'RESEND_API_KEY / RESEND_FROM_EMAIL are not configured on the server.' };
+  }
+
+  return sendGmailEmail(opts);
 }
 
 export interface ContactEmailOptions {
@@ -393,7 +436,7 @@ export async function sendOTPEmail(opts: {
     studentName: opts.studentName,
     otp: opts.otp,
   });
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -412,7 +455,7 @@ export async function sendWelcomeEmail(opts: {
     department: opts.department,
     year: opts.year,
   });
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -429,7 +472,7 @@ export async function sendEventRegistrationEmail(opts: {
   instructions?: string;
 }): Promise<EmailSendResult> {
   const { subject, html, text } = generateEventRegistrationEmailHtml(opts);
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -453,7 +496,7 @@ export async function sendWorkshopEmail(opts: {
     type: 'Workshop',
     subject: `Workshop Invitation: ${opts.title} – ${CLUB.name}`,
   });
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -477,7 +520,7 @@ export async function sendHackathonEmail(opts: {
     type: 'Hackathon',
     subject: `Hackathon Announcement: ${opts.title} – ${CLUB.name}`,
   });
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -492,7 +535,7 @@ export async function sendCertificateEmail(opts: {
   downloadUrl?: string;
 }): Promise<EmailSendResult> {
   const { subject, html, text } = generateCertificateEmailHtml(opts);
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
@@ -514,7 +557,7 @@ export async function sendAdminAnnouncementEmail(opts: {
   subject?: string;
 }): Promise<EmailSendResult> {
   const { subject, html, text } = generateAnnouncementEmailHtml(opts);
-  return sendGmailEmail({ to: opts.to, subject, html, text });
+  return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 
 /**
