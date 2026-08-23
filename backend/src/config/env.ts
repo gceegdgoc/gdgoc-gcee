@@ -71,8 +71,8 @@ export function getPublicAppUrl(): string {
 /**
  * The ONE canonical registration link used by the REGISTER NOW button in every
  * event/announcement email. Always an absolute HTTPS URL so it works from Gmail.
- * Event-specific registrationLink fields are intentionally ignored for emails
- * because they may contain stale/broken deployment URLs (404 DEPLOYMENT_NOT_FOUND).
+ * Event-specific registrationLink fields are intentionally ignored for emails;
+ * the button always opens the official event page below.
  */
 export const EMAIL_REGISTRATION_URL = 'https://gdgoc-gcee.vercel.app/events/EV-2026-0001';
 
