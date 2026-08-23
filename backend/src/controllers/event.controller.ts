@@ -50,6 +50,7 @@ export function serializeEvent(event: any) {
     speaker: event.speaker,
     speakerBio: event.speakerBio,
     category: event.category,
+    eventType: event.eventType || event.category,
     technologies: event.technologies,
     registrationEnabled: event.registrationEnabled,
     isRegistrationOpen,
@@ -799,7 +800,10 @@ export async function adminUpdateEvent(req: any, res: Response) {
       return;
     }
 
+    // Validate against the MERGED document (stored values + incoming patch),
+    // so partial updates never fail on fields the client did not send.
     const eventData = normalizeEventPayload({
+      ...(existing.toObject() as Record<string, unknown>),
       ...req.body,
       // Never change the slug implicitly on update; keep the stored one unless explicitly provided.
       slug: req.body?.slug || undefined,
