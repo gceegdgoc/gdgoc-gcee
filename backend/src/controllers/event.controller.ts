@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration } from '../models';

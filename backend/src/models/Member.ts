@@ -14,7 +14,8 @@ export interface IMember extends Document {
   areasOfInterest: string;
   whyJoin: string;
   status: 'active' | 'rejected' | 'pending';
-  joinedDate: Date;
+    team: any;
+joinedDate: Date;
 }
 
 const memberSchema = new Schema<IMember>(

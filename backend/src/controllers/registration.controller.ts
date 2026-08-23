@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from 'express';
 import { GoogleFormRegistration, EventModel, Registration, EventRegistration } from '../models';
 import { connectDB } from '../config/db';

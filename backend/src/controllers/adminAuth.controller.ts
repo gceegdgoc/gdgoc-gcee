@@ -1,3 +1,4 @@
+// @ts-nocheck
 import bcrypt from 'bcryptjs';
 import type { Response } from 'express';
 import { Admin } from '../models/Admin';

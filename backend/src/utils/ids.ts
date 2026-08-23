@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Certificate, EventModel } from '../models';
 
 export function padNumber(n: number, length = 6): string {

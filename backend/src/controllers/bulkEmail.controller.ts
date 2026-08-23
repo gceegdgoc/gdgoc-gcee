@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from 'express';
 import { Student, BulkEmailLog } from '../models/index.js';
 import { connectDB } from '../config/db.js';

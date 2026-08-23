@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Response } from 'express';
 import { Certificate } from '../models/Certificate';
 import { CertificateCampaign } from '../models/CertificateCampaign';

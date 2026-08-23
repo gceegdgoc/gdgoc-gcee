@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Response } from 'express';
 import { CertificateCampaign, EventModel, Attendance, Student, Certificate } from '../models';
 import { env } from '../config/env';

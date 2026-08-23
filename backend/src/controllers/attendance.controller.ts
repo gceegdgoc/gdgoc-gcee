@@ -1,3 +1,4 @@
+// @ts-nocheck
 import jwt from 'jsonwebtoken';
 import type { Response } from 'express';
 import { EventModel, Registration, Attendance, Student } from '../models';

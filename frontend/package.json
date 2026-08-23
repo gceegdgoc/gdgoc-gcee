@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-   "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+   "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
    "build": "vite build",
     "preview": "vite preview",
     "typecheck": "npx tsc --noEmit"
