@@ -56,29 +56,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loginStudent(email: string, password: string) {
     const res = await api.post('/auth/login', { email, password });
+    if (res.data.token) localStorage.setItem('gdgoc_student_token', res.data.token);
     setStudent(res.data.student);
     return res.data.student as Student;
   }
 
   async function registerStudent(data: Record<string, string>) {
     const res = await api.post('/auth/register', data);
+    if (res.data.token) localStorage.setItem('gdgoc_student_token', res.data.token);
     setStudent(res.data.student);
     return res.data;
   }
 
   async function logoutStudent() {
     await api.post('/auth/logout').catch(() => null);
+    localStorage.removeItem('gdgoc_student_token');
     setStudent(null);
   }
 
   async function loginAdmin(email: string, password: string) {
     const res = await api.post('/admin/auth/login', { email, password });
+    if (res.data.token) localStorage.setItem('gdgoc_admin_token', res.data.token);
     setAdmin(res.data.admin);
     return res.data.admin as Admin;
   }
 
   async function logoutAdmin() {
     await api.post('/admin/auth/logout').catch(() => null);
+    localStorage.removeItem('gdgoc_admin_token');
     setAdmin(null);
   }
 
@@ -88,7 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function verifyOtp(email: string, otp: string) {
-    await api.post('/auth/verify-otp', { email, otp });
+    const res = await api.post('/auth/verify-otp', { email, otp });
+    if (res.data?.token) localStorage.setItem('gdgoc_student_token', res.data.token);
+    if (res.data?.student) setStudent(res.data.student);
   }
 
   return (

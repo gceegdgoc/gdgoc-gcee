@@ -5,9 +5,10 @@
   "description": "GDGoC on Campus — Government College of Engineering, Erode. Full-stack community platform (React + Express + MongoDB).",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend",
     "seed": "npm run seed --prefix backend"
   },
   "engines": {

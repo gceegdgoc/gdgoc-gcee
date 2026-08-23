@@ -8,6 +8,36 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Request interceptor to attach tokens securely from localStorage
+api.interceptors.request.use((config) => {
+  const adminToken = localStorage.getItem('gdgoc_admin_token');
+  const studentToken = localStorage.getItem('gdgoc_student_token');
+
+  // Inject admin token for all /admin routes, else inject student token
+  if (config.url?.startsWith('/admin')) {
+    if (adminToken && config.headers) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
+  } else {
+    if (studentToken && config.headers) {
+      config.headers.Authorization = `Bearer ${studentToken}`;
+    }
+  }
+  return config;
+});
+
+// Response interceptor to handle unauthenticated sessions silently
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      // Optional: We can dispatch a custom event or let AuthContext handle the redirect.
+      // We don't want to force redirect every 401 because it interrupts the UX of checking if logged in.
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface ApiError {
   success: boolean;
   message: string;
