@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Dark navy background square with rounded corners -->
+  <rect width="32" height="32" rx="8" fill="#0b1b33"/>
+  <!-- Bold "G" letter -->
+  <text x="8" y="22" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="white">G</text>
+  <!-- Google four-color bar at bottom -->
+  <rect x="4" y="27" width="6" height="2.5" rx="1.25" fill="#4285F4"/>
+  <rect x="11" y="27" width="5" height="2.5" rx="1.25" fill="#34A853"/>
+  <rect x="17" y="27" width="5" height="2.5" rx="1.25" fill="#FBBC05"/>
+  <rect x="23" y="27" width="5" height="2.5" rx="1.25" fill="#EA4335"/>
+</svg>
