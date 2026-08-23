@@ -12,46 +12,48 @@ interface EventFormData {
   shortDescription: string;
   description: string;
   date: string;
+  time: string;
   startTime: string;
   endTime: string;
   venue: string;
   speaker: string;
   speakerBio: string;
-  category: string;
+  eventType: string;
   technologies: string;
   registrationEnabled: boolean;
   registrationDeadline: string;
   capacity: string;
-  googleFormUrl: string;
+  registrationUrl: string;
   registrationLink: string;
   isCertificateEligible: boolean;
   isInauguration: boolean;
   status: string;
-  banner: string;
+  poster: string;
 }
 
-function toForm(event?: GEvent): EventFormData {
+function toForm(event?: GEvent & any): EventFormData {
   return {
     title: event?.title || '',
     shortDescription: event?.shortDescription || '',
     description: event?.description || '',
     date: event?.date || '',
+    time: event?.time || '',
     startTime: event?.startTime || '',
     endTime: event?.endTime || '',
     venue: event?.venue || '',
     speaker: event?.speaker || '',
     speakerBio: event?.speakerBio || '',
-    category: event?.category || 'Workshop',
+    eventType: event?.eventType || event?.category || 'Workshop',
     technologies: (event?.technologies || []).join(', '),
     registrationEnabled: event?.registrationEnabled ?? true,
     registrationDeadline: event?.registrationDeadline || '',
     capacity: event?.capacity ? String(event.capacity) : '',
-    googleFormUrl: event?.googleFormUrl || '',
+    registrationUrl: event?.registrationUrl || event?.googleFormUrl || '',
     registrationLink: event?.registrationLink || '',
     isCertificateEligible: event?.isCertificateEligible ?? false,
     isInauguration: event?.isInauguration ?? false,
     status: event?.status || 'UPCOMING',
-    banner: event?.banner || '',
+    poster: event?.poster || event?.banner || '',
   };
 }
 
@@ -73,19 +75,24 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => update('banner', String(reader.result));
+    reader.onload = () => update('poster', String(reader.result));
     reader.readAsDataURL(file);
+  };
+
+  const generateSlug = (title: string) => {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.date) {
-      toast.error('Event title and date are required.');
+    if (!form.title || !form.date || !form.time || !form.eventType || !form.poster) {
+      toast.error('Please fill all required fields (title, date, time, type, poster).');
       return;
     }
     setBusy(true);
     const payload = {
       ...form,
+      slug: generateSlug(form.title),
       capacity: form.capacity ? Number(form.capacity) : 0,
       technologies: form.technologies
         .split(',')
@@ -151,6 +158,10 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
             <input id="ev-venue" className="input" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="CS Seminar Hall" />
           </div>
           <div>
+            <label className="label" htmlFor="ev-time">Time (Text) <span className="text-g-red">*</span></label>
+            <input id="ev-time" className="input" value={form.time} onChange={(e) => update('time', e.target.value)} placeholder="e.g. 09:00 AM - 04:00 PM" />
+          </div>
+          <div>
             <label className="label" htmlFor="ev-start-time">Start Time</label>
             <input id="ev-start-time" className="input font-mono" value={form.startTime} onChange={(e) => update('startTime', e.target.value)} placeholder="09:00" />
           </div>
@@ -159,8 +170,9 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
             <input id="ev-end-time" className="input font-mono" value={form.endTime} onChange={(e) => update('endTime', e.target.value)} placeholder="17:00" />
           </div>
           <div>
-            <label className="label" htmlFor="ev-cat">Category</label>
-            <select id="ev-cat" className="input" value={form.category} onChange={(e) => update('category', e.target.value)}>
+            <label className="label" htmlFor="ev-cat">Event Type <span className="text-g-red">*</span></label>
+            <select id="ev-cat" className="input" value={form.eventType} onChange={(e) => update('eventType', e.target.value)}>
+              <option value="" disabled>Select event type</option>
               {EVENT_CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -198,12 +210,16 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
             <label className="label" htmlFor="ev-deadline">Registration deadline (YYYY-MM-DD)</label>
             <input id="ev-deadline" className="input font-mono" value={form.registrationDeadline} onChange={(e) => update('registrationDeadline', e.target.value)} placeholder="2026-09-18" />
           </div>
+          <div>
+            <label className="label" htmlFor="ev-reg-url">External Registration URL</label>
+            <input id="ev-reg-url" className="input font-mono text-sm" value={form.registrationUrl} onChange={(e) => update('registrationUrl', e.target.value)} placeholder="e.g. Google Form URL" />
+          </div>
           <div className="sm:col-span-2">
             <label className="label" htmlFor="ev-reg-link">
-              <span className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Registration Link (for event emails)</span>
+              <span className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Direct Registration Link (for event emails)</span>
             </label>
             <input id="ev-reg-link" className="input font-mono text-sm" value={form.registrationLink} onChange={(e) => update('registrationLink', e.target.value)} placeholder="Optional custom registration URL" />
-            <p className="mt-1 text-xs text-ink-faint">Used in the "Register Now" button when sending event announcement emails to students (defaults to official GDGoC GCEE event page).</p>
+            <p className="mt-1 text-xs text-ink-faint">Used in the "Register Now" button when sending event announcement emails to students.</p>
           </div>
         </div>
 
@@ -245,17 +261,17 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       </div>
 
       <div className="card p-6">
-        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Banner</h3>
+        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Poster <span className="text-g-red">*</span></h3>
         <div className="flex flex-col items-start gap-4 sm:flex-row">
           <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-navy-200 p-6 transition hover:border-g-blue hover:bg-g-blue/5 sm:w-auto">
             <UploadCloud className="h-5 w-5 text-g-blue" />
-            <span className="text-sm font-medium text-navy-900">Upload banner image</span>
+            <span className="text-sm font-medium text-navy-900">Upload poster image</span>
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
           </label>
-          {form.banner && (
+          {form.poster && (
             <div className="relative">
-              <img src={form.banner} alt="Banner preview" className="h-28 w-48 rounded-xl object-cover" />
-              <button type="button" onClick={() => update('banner', '')} className="absolute -right-2 -top-2 rounded-full bg-g-red p-1 text-white" aria-label="Remove banner">
+              <img src={form.poster} alt="Poster preview" className="h-28 w-48 rounded-xl object-cover" />
+              <button type="button" onClick={() => update('poster', '')} className="absolute -right-2 -top-2 rounded-full bg-g-red p-1 text-white" aria-label="Remove poster">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>

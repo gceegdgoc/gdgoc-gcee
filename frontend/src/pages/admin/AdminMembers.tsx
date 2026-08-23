@@ -10,7 +10,12 @@ import { api, getErrorMessage } from '../../lib/api';
 import { TEAMS, DEPARTMENTS, YEARS } from '../../lib/utils';
 import type { Member } from '../../types';
 
-const emptyForm = { name: '', team: 'Community Members', role: 'Member', department: '', year: '', photo: '', github: '', linkedin: '', instagram: '', twitter: '' };
+const emptyForm = { 
+  name: '', email: '', phone: '', college: 'Government College of Engineering, Erode', 
+  registerNumber: '', skills: '', areasOfInterest: '', whyJoin: '',
+  team: 'Community Members', role: 'Member', department: '', year: '', 
+  photo: '', github: '', linkedin: '', instagram: '', twitter: '' 
+};
 
 export default function AdminMembers() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -46,6 +51,13 @@ export default function AdminMembers() {
     setEditing(m);
     setForm({
       name: m.name,
+      email: m.email || '',
+      phone: m.phone || '',
+      college: m.college || 'Government College of Engineering, Erode',
+      registerNumber: m.registerNumber || '',
+      skills: m.skills || '',
+      areasOfInterest: m.areasOfInterest || '',
+      whyJoin: m.whyJoin || '',
       team: m.team,
       role: m.role,
       department: m.department,
@@ -68,13 +80,20 @@ export default function AdminMembers() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name) {
-      toast.error('Name is required.');
+    if (!form.name || !form.email || !form.phone || !form.registerNumber || !form.college) {
+      toast.error('Please fill in all required fields (Name, Email, Phone, Register Number, College).');
       return;
     }
     setBusy(true);
     const payload = {
       name: form.name,
+      email: form.email,
+      phone: form.phone,
+      college: form.college,
+      registerNumber: form.registerNumber,
+      skills: form.skills,
+      areasOfInterest: form.areasOfInterest,
+      whyJoin: form.whyJoin,
       team: form.team,
       role: form.role,
       department: form.department,
@@ -166,9 +185,27 @@ export default function AdminMembers() {
       {/* Member Create/Edit Modal */}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Edit member' : 'Add member'}>
         <form onSubmit={submit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">Name <span className="text-g-red">*</span></label>
+              <input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Email <span className="text-g-red">*</span></label>
+              <input type="email" className="input" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Phone <span className="text-g-red">*</span></label>
+              <input type="tel" className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Register Number <span className="text-g-red">*</span></label>
+              <input className="input" value={form.registerNumber} onChange={(e) => setForm((f) => ({ ...f, registerNumber: e.target.value }))} />
+            </div>
+          </div>
           <div>
-            <label className="label">Name</label>
-            <input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            <label className="label">College <span className="text-g-red">*</span></label>
+            <input className="input" value={form.college} onChange={(e) => setForm((f) => ({ ...f, college: e.target.value }))} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -195,6 +232,18 @@ export default function AdminMembers() {
                 {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
+          </div>
+          <div>
+            <label className="label">Skills</label>
+            <input className="input" value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder="e.g. React, Node.js, Python" />
+          </div>
+          <div>
+            <label className="label">Areas of Interest</label>
+            <input className="input" value={form.areasOfInterest} onChange={(e) => setForm((f) => ({ ...f, areasOfInterest: e.target.value }))} placeholder="e.g. Web Dev, AI, Cloud" />
+          </div>
+          <div>
+            <label className="label">Why Join?</label>
+            <textarea className="input resize-y" rows={2} value={form.whyJoin} onChange={(e) => setForm((f) => ({ ...f, whyJoin: e.target.value }))} placeholder="Reason for joining the team..." />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

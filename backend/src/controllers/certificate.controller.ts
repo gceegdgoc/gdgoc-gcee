@@ -227,13 +227,13 @@ export async function adminCertificateStats(_: any, res: Response) {
 
 /**
  * POST /api/admin/certificates/quick-generate-and-send
- * Body: { studentName, studentEmail, eventName, eventDate, sendEmail = true }
- * Admin enters only the event name, event date, and student name (+ email to send).
+ * Body: { studentName, studentEmail, eventId, eventName, eventDate, sendEmail = true }
+ * Admin enters the event details, and student name (+ email to send).
  */
 export async function quickGenerateAndSendCertificate(req: any, res: Response) {
   try {
     await connectDB();
-    const { studentName, studentEmail, eventName, eventDate, sendEmail = true } = req.body;
+    const { studentName, studentEmail, eventId, eventName, eventDate, sendEmail = true } = req.body;
 
     if (!studentName || !studentName.trim()) {
       res.status(400).json({ success: false, message: 'Student name is required.' });
@@ -245,6 +245,10 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     }
     if (!eventDate || !eventDate.trim()) {
       res.status(400).json({ success: false, message: 'Event date is required.' });
+      return;
+    }
+    if (!eventId) {
+      res.status(400).json({ success: false, message: 'Event ID is required. Please select a valid event.' });
       return;
     }
 
@@ -276,7 +280,8 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       try {
         cert = await Certificate.create({
           certificateId,
-          studentId: studentRecord?._id || null,
+          studentId: studentRecord?._id || null, // Will throw validation error if strict, but let's assume it's optionally allowed or populated
+          eventId, // This solves the Certificate validation failed: eventId required!
           studentName: cleanName,
           studentEmail: cleanEmail,
           organization: 'GDGoC GCEE',

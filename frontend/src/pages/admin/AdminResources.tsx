@@ -59,7 +59,7 @@ export default function AdminResources() {
     setForm({
       title: r.title,
       description: r.description,
-      url: r.url,
+      url: r.link || r.url || '',
       category: r.category,
       type: r.type || 'link',
       uploadedBy: r.uploadedBy || '',
@@ -74,10 +74,11 @@ export default function AdminResources() {
       return;
     }
     setBusy(true);
+    const payload = { ...form, link: form.url };
     try {
       const res = editing
-        ? await api.put(`/admin/resources/${editing._id}`, form)
-        : await api.post('/admin/resources', form);
+        ? await api.put(`/admin/resources/${editing._id}`, payload)
+        : await api.post('/admin/resources', payload);
       toast.success(res.data.message || 'Resource saved successfully.');
       setModal(false);
       load();
@@ -223,12 +224,12 @@ export default function AdminResources() {
                   </td>
                   <td className="max-w-[220px] p-4">
                     <a
-                      href={r.url}
+                      href={r.link || r.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 truncate text-xs text-g-blue hover:underline"
                     >
-                      <span className="truncate">{r.url}</span>
+                      <span className="truncate">{r.link || r.url}</span>
                       <ExternalLink className="h-3 w-3 shrink-0" />
                     </a>
                   </td>

@@ -48,6 +48,7 @@ export default function AdminCertificates() {
   const [events, setEvents] = useState<EventOption[]>([]);
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
+  const [eventId, setEventId] = useState('');
   const [eventName, setEventName] = useState('AI Prompt Engineering Workshop');
   const [eventDate, setEventDate] = useState(new Date().toISOString().slice(0, 10));
   const [sendEmail, setSendEmail] = useState(true);
@@ -91,8 +92,10 @@ export default function AdminCertificates() {
   }, [filter]);
 
   const handleSelectEvent = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = events.find((ev) => ev.title === e.target.value);
+    const selectedId = e.target.value;
+    const selected = events.find((ev) => ev.eventId === selectedId);
     if (selected) {
+      setEventId(selected.eventId);
       setEventName(selected.title);
       if (selected.date) {
         setEventDate(selected.date.slice(0, 10));
@@ -106,8 +109,8 @@ export default function AdminCertificates() {
       toast.error('Please enter the student name.');
       return;
     }
-    if (!eventName.trim()) {
-      toast.error('Please enter the event name.');
+    if (!eventName.trim() || !eventId) {
+      toast.error('Please select or enter a valid event (ensure event is picked from the dropdown to get its ID).');
       return;
     }
     if (!eventDate) {
@@ -124,6 +127,7 @@ export default function AdminCertificates() {
       const res = await api.post('/admin/certificates/quick-generate', {
         studentName: studentName.trim(),
         studentEmail: studentEmail.trim(),
+        eventId,
         eventName: eventName.trim(),
         eventDate,
         sendEmail,
@@ -384,7 +388,7 @@ export default function AdminCertificates() {
                       ⚡ Pick from recent events…
                     </option>
                     {events.map((ev) => (
-                      <option key={ev.eventId} value={ev.title}>
+                      <option key={ev.eventId} value={ev.eventId}>
                         {ev.title}
                       </option>
                     ))}

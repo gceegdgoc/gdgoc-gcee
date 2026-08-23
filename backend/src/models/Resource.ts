@@ -1,6 +1,16 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export const RESOURCE_CATEGORIES = ['Web', 'App', 'AI', 'Cloud', 'Design', 'Other'];
+export const RESOURCE_CATEGORIES = [
+  'Web Development',
+  'AI/ML',
+  'Cloud',
+  'Git & GitHub',
+  'Android',
+  'Cybersecurity',
+  'Open Source',
+  'Programming',
+  'Other',
+];
 
 export interface IResource extends Document {
   title: string;

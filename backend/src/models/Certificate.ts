@@ -24,7 +24,7 @@ campaignId?: any;
 
 const certificateSchema = new Schema<ICertificate>({
   certificateId: { type: String, required: true, unique: true },
-  studentId: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
+  studentId: { type: Schema.Types.ObjectId, ref: 'Student' }, // Optional for quick-gen
   eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
   certificateUrl: { type: String },
   issuedAt: { type: Date, default: Date.now },
