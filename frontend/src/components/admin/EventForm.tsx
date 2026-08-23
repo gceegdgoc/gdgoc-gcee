@@ -22,8 +22,6 @@ interface EventFormData {
   technologies: string;
   registrationEnabled: boolean;
   registrationDeadline: string;
-  capacity: string;
-  registrationUrl: string;
   registrationLink: string;
   isCertificateEligible: boolean;
   isInauguration: boolean;
@@ -48,7 +46,6 @@ function toForm(event?: GEvent & any): EventFormData {
     registrationEnabled: event?.registrationEnabled ?? true,
     registrationDeadline: event?.registrationDeadline || '',
     capacity: event?.capacity ? String(event.capacity) : '',
-    registrationUrl: event?.registrationUrl || event?.googleFormUrl || '',
     registrationLink: event?.registrationLink || '',
     isCertificateEligible: event?.isCertificateEligible ?? false,
     isInauguration: event?.isInauguration ?? false,
@@ -226,10 +223,6 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
           <div>
             <label className="label" htmlFor="ev-deadline">Registration deadline (YYYY-MM-DD)</label>
             <input id="ev-deadline" className="input font-mono" value={form.registrationDeadline} onChange={(e) => update('registrationDeadline', e.target.value)} placeholder="2026-09-18" />
-          </div>
-          <div>
-            <label className="label" htmlFor="ev-reg-url">External Registration URL</label>
-            <input id="ev-reg-url" className="input font-mono text-sm" value={form.registrationUrl} onChange={(e) => update('registrationUrl', e.target.value)} placeholder="e.g. Google Form URL" />
           </div>
           <div className="sm:col-span-2">
             <label className="label" htmlFor="ev-reg-link">
