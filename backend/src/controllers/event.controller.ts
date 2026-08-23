@@ -7,7 +7,7 @@ import { nextEventId } from '../utils/ids';
 import { todayIST, isDateBefore, formatTimeRange, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate } from '../utils/dates';
 import { safeString } from '../utils/safe';
 import { connectDB } from '../config/db';
-import { env, getPublicAppUrl } from '../config/env';
+import { EMAIL_REGISTRATION_URL } from '../config/env';
 import { sendEventEmail, sendBulkEventRegistrationEmails, emailIsConfigured } from '../lib/mailer';
 
 export function eventQuery(identifier: string) {
@@ -973,10 +973,7 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
       return;
     }
 
-    const appUrl = getPublicAppUrl();
-    const regUrl =
-      safeString(event.registrationLink) ||
-      `${appUrl}/events/${event.eventId}`;
+    const regUrl = EMAIL_REGISTRATION_URL;
 
     const subject = `You're Invited! ${event.title} – GDGoC GCEE`;
     const eventName = safeString(event.title) || safeString(event.eventId);

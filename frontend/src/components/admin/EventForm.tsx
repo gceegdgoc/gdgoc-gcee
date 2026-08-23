@@ -22,6 +22,8 @@ interface EventFormData {
   technologies: string;
   registrationEnabled: boolean;
   registrationDeadline: string;
+  /** Kept as a raw input string; converted to a number in the payload. */
+  capacity: string;
   registrationLink: string;
   isCertificateEligible: boolean;
   isInauguration: boolean;

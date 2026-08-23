@@ -1,5 +1,5 @@
 import { baseEmailHtml, escapeHtml } from './base.template';
-import { CLUB } from '../../../config/env';
+import { CLUB, EMAIL_REGISTRATION_URL } from '../../../config/env';
 
 export interface AnnouncementEmailOptions {
   studentName?: string;
@@ -24,7 +24,10 @@ export function generateAnnouncementEmailHtml(opts: AnnouncementEmailOptions): {
   const time = escapeHtml(opts.time || 'TBA');
   const venue = escapeHtml(opts.venue || CLUB.institution);
   const subject = opts.subject || `[GDGoC GCEE] ${opts.title}`;
-  const regUrl = opts.registrationLink || '';
+  // The REGISTER NOW button always points to the official site URL.
+  // Any registrationLink supplied by callers/event data may be stale or point
+  // at a broken deployment, so it is intentionally ignored here.
+  const regUrl = EMAIL_REGISTRATION_URL;
 
   const posterHtml = opts.posterUrl
     ? `<tr><td style="padding:0;">
@@ -98,7 +101,7 @@ ${opts.customMessage || ''}
 Date: ${opts.date || 'TBA'}
 Time: ${opts.time || 'TBA'}
 Venue: ${opts.venue || CLUB.institution}
-${opts.registrationLink ? `\nRegister here: ${opts.registrationLink}` : ''}
+Register here: ${regUrl}
 
 Best regards,
 GDGoC GCEE Team`;

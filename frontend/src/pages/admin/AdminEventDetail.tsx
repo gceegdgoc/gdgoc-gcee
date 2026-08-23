@@ -281,7 +281,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
             <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> GDGoC GCEE branding</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> Event name, description, date, time, venue</li>
             {event.banner && <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> Event poster image</li>}
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> "Register Now" button → {event.registrationLink || 'Official GDGoC GCEE event page'}</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> "Register Now" button → https://gdgoc-gcee.vercel.app/</li>
           </ul>
         </div>
 
@@ -417,7 +417,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
             </div>
             <div className="text-center">
               <a
-                href={event.registrationLink || `/events/${event.eventId}`}
+                href="https://gdgoc-gcee.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-lg bg-g-blue px-6 py-2 text-xs font-bold text-white"

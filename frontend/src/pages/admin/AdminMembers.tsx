@@ -7,7 +7,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { Modal } from '../../components/ui/Modal';
 import { ButtonSpinner } from '../../components/ui/Spinner';
 import { api, getFieldErrors, getErrorMessage } from '../../lib/api';
-import { TEAMS, DEPARTMENTS, YEARS } from '../../lib/utils';
+import { TEAMS, DEPARTMENTS, YEARS, cn } from '../../lib/utils';
 import type { Member, MemberPayload } from '../../types';
 
 const emptyForm = { 
@@ -299,22 +299,22 @@ export default function AdminMembers() {
             <textarea className="input resize-y" rows={2} value={form.whyJoin} onChange={(e) => setForm((f) => ({ ...f, whyJoin: e.target.value }))} placeholder="Reason for joining the team..." />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="label">GitHub URL</label>
-              <input className="input" value={form.github} onChange={(e) => setForm((f) => ({ ...f, github: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">LinkedIn URL</label>
-              <input className="input" value={form.linkedin} onChange={(e) => setForm((f) => ({ ...f, linkedin: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">Instagram URL</label>
-              <input className="input" value={form.instagram} onChange={(e) => setForm((f) => ({ ...f, instagram: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">Twitter URL</label>
-              <input className="input" value={form.twitter} onChange={(e) => setForm((f) => ({ ...f, twitter: e.target.value }))} />
-            </div>
+            {SOCIAL_FIELDS.map(({ key, label }) => {
+              const errorKey = `socialLinks.${key}`;
+              return (
+                <div key={key}>
+                  <label className="label">{label} URL <span className="text-[10px] font-normal text-ink-faint">(optional)</span></label>
+                  <input
+                    aria-invalid={!!fieldErrors[errorKey]}
+                    className={cn('input', fieldErrors[errorKey] && 'border-g-red')}
+                    value={form[key]}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                    placeholder="https://…"
+                  />
+                  <FieldError message={fieldErrors[errorKey]} />
+                </div>
+              );
+            })}
           </div>
           <div>
             <label className="label">Photo</label>

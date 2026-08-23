@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { isValidHttpUrl } from '../utils/safe';
 
 /**
  * Canonical Member model.
@@ -51,12 +52,25 @@ export interface IMember extends Document {
   updatedAt?: Date;
 }
 
+/**
+ * Optional URL rule shared by every social field: an EMPTY string is always
+ * accepted (the field is optional), but a non-empty value must be a real
+ * http(s) URL. Keeps schema-level parity with the controller validation.
+ */
+const optionalUrl = {
+  validator: (v: unknown) => {
+    const raw = typeof v === 'string' ? v.trim() : '';
+    return !raw || isValidHttpUrl(raw);
+  },
+  message: (props: { path: string }) => `${props.path} must be a valid http(s) URL (e.g. https://example.com).`,
+};
+
 const socialLinksSchema = new Schema(
   {
-    github: { type: String, default: '' },
-    linkedin: { type: String, default: '' },
-    instagram: { type: String, default: '' },
-    twitter: { type: String, default: '' },
+    github: { type: String, default: '', validate: optionalUrl },
+    linkedin: { type: String, default: '', validate: optionalUrl },
+    instagram: { type: String, default: '', validate: optionalUrl },
+    twitter: { type: String, default: '', validate: optionalUrl },
   },
   { _id: false }
 );

@@ -10,6 +10,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "seed": "tsx src/scripts/seed.ts",
+    "migrate:sending-history": "tsx src/scripts/migrate-sending-history.ts",
     "test:email": "tsx src/scripts/testEmailFlow.ts"
   },
   "dependencies": {

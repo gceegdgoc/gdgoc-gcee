@@ -7,12 +7,14 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
  *
  * 1. `recordType: 'recipient'` (default) — one row per individual email
  *    attempt. `recipientCount` stores the TOTAL number of recipients in the
- *    batch the email belonged to (always supplied — see utils/sendingHistory).
- *    Legacy documents created before batch tracking may be missing newer
- *    fields; API responses treat those fields as optional.
+ *    batch the email belonged to (computed BEFORE sending starts — see the
+ *    admin event-email / distribution controllers). Legacy documents created
+ *    before batch tracking may be missing newer fields; API responses treat
+ *    those fields as optional and scripts/migrate-sending-history.ts
+ *    backfills them safely.
  *
- * 2. `recordType: 'batch'` — one row per bulk "send to N students" operation,
- *    carrying recipientCount / sentCount / failedCount / status /
+ * 2. `recordType: 'batch'` — reserved for bulk "send to N students"
+ *    operations, carrying recipientCount / sentCount / failedCount /
  *    startedAt / completedAt for progress tracking and auditing.
  *
  * `recipientCount` is REQUIRED on both shapes: never create a document

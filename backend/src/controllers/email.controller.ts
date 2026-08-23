@@ -4,7 +4,7 @@ import { EventModel, Student, GoogleFormRegistration, EmailLog } from '../models
 import { connectDB } from '../config/db';
 import { sendBulkEventAnnouncement } from '../services/email.service';
 
-import { getPublicAppUrl } from '../config/env';
+import { EMAIL_REGISTRATION_URL } from '../config/env';
 
 // POST /api/admin/events/:eventId/send-announcement
 export async function sendEventAnnouncement(req: any, res: Response) {
@@ -45,8 +45,7 @@ export async function sendEventAnnouncement(req: any, res: Response) {
       return;
     }
 
-    const appUrl = getPublicAppUrl();
-    const regUrl = event.registrationLink || `${appUrl}/events/${event.eventId}`;
+    const regUrl = EMAIL_REGISTRATION_URL;
     const emailSubject = subject || `Registration Open – ${event.title}`;
 
     const result = await sendBulkEventAnnouncement({

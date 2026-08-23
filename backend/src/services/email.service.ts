@@ -1,4 +1,4 @@
-import { env, CLUB, getPublicAppUrl } from '../config/env';
+import { CLUB, EMAIL_REGISTRATION_URL } from '../config/env';
 import { EmailLog } from '../models/EmailLog';
 import {
   sendAdminAnnouncementEmail,
@@ -88,9 +88,7 @@ export async function sendBulkEventAnnouncement(opts: {
       continue;
     }
 
-    const regLink =
-      opts.eventRegistrationLink ||
-      `${getPublicAppUrl()}/events${opts.eventId ? `/${opts.eventId}` : ''}`;
+    const regLink = EMAIL_REGISTRATION_URL;
     const result = await sendEventAnnouncementEmail({
       to: student.email,
       studentName: student.name || 'Student',
