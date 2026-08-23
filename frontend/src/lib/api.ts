@@ -41,11 +41,18 @@ api.interceptors.response.use(
 export interface ApiError {
   success: boolean;
   message: string;
+  errors?: Record<string, string>;
 }
 
 export function getErrorMessage(err: unknown): string {
   if (axios.isAxiosError(err)) {
     const data = (err as AxiosError<ApiError>).response?.data;
+    if (data?.errors && typeof data.errors === 'object') {
+      const details = Object.entries(data.errors)
+        .filter(([, msg]) => typeof msg === 'string' && msg.trim())
+        .map(([, msg]) => msg.trim());
+      if (details.length > 0) return details.join(' ');
+    }
     if (data?.message) return data.message;
     if (err.code === 'ECONNABORTED') return 'The request timed out. Please try again.';
     if (!err.response) return 'Cannot reach the server. Check your connection and try again.';

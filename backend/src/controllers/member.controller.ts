@@ -182,19 +182,23 @@ export async function updateMember(req: any, res: Response) {
     const data = normalizeMemberPayload({ ...member.toObject(), ...overlay });
 
     const errors: Record<string, string> = {};
-    if (!data.name) errors.name = 'Member name is required.';
-    if (!data.email) errors.email = 'Email is required.';
-    else if (!EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
+    // Update rule: an existing required value may never be BLANKED, but a
+    // legacy document that never had the value stays fully editable.
+    if (!data.name && member.name) errors.name = 'Member name is required.';
+    if (!data.email && member.email) errors.email = 'Email is required.';
+    else if (data.email && !EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
     if (Object.keys(errors).length > 0) {
       logAdminAction(`PUT /api/admin/members/${req.params.id} [invalid]`, req, data);
       validationError(res, errors);
       return;
     }
 
-    delete (data as any)._id;
-    delete (data as any).createdAt;
-    delete (data as any).updatedAt;
-    Object.assign(member, data);
+    // Apply back ONLY the fields the client actually sent, so untouched paths
+    // on legacy documents are never marked modified (keeps validateModifiedOnly
+    // meaningful — missing-on-purpose legacy fields stay editable).
+    for (const key of Object.keys(overlay)) {
+      member[key] = data[key];
+    }
 
     // validateModifiedOnly keeps legacy members (created before richer fields
     // existed) editable while still validating everything the admin changed.

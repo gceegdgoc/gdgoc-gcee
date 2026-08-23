@@ -60,7 +60,7 @@ export function getPublicAppUrl(): string {
 
   // When running in production or on Vercel, default to the official production URL
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return 'https://gdgoc-gcee-clubs.vercel.app';
+    return 'https://gdgoc-gcee.vercel.app';
   }
 
   // Local development fallback
