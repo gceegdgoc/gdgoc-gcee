@@ -444,11 +444,20 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       }
     }
 
+    let message: string;
+    if (emailSent) {
+      message = `Certificate ${cert.certificateId} generated and delivered to ${cleanEmail}!`;
+    } else if (sendEmail) {
+      message =
+        `Certificate ${cert.certificateId} was generated, but the email could not be delivered` +
+        (emailError ? `: ${emailError}` : '. Please try resending it from the certificates list.');
+    } else {
+      message = `Certificate ${cert.certificateId} generated successfully.`;
+    }
+
     res.status(201).json({
       success: true,
-      message: emailSent
-        ? `Certificate ${cert.certificateId} generated and delivered to ${cleanEmail}!`
-        : `Certificate ${cert.certificateId} generated successfully.`,
+      message,
       certificate: publicView(cert),
       emailSent,
       emailError,

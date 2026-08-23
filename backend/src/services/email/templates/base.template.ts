@@ -1,4 +1,4 @@
-import { env, CLUB, getPublicAppUrl } from '../../../config/env';
+import { CLUB, getPublicAppUrl, SITE_EMAIL } from '../../../config/env';
 import { safeString } from '../../../utils/safe';
 
 export function escapeHtml(value: unknown): string {
@@ -55,7 +55,8 @@ export function baseEmailHtml(content: string, previewText?: string): string {
             <td style="background-color:#f8fafc; padding:24px 32px; border-top:1px solid #e2e8f0; text-align:center;">
               <p style="margin:0; color:#64748b; font-size:12px; line-height:1.6;">
                 <strong>${CLUB.name}</strong> · ${CLUB.institution}<br/>
-                <a href="${siteUrl}" style="color:#4285F4; text-decoration:none; font-weight:600;">Visit Community Website</a>
+                <a href="${siteUrl}" style="color:#4285F4; text-decoration:none; font-weight:600;">Visit Community Website</a><br/>
+                <a href="mailto:${SITE_EMAIL}" style="color:#64748b; text-decoration:none;">${SITE_EMAIL}</a>
               </p>
               <p style="margin:10px 0 0 0; color:#94a3b8; font-size:11px;">
                 This is an official communication from GDGoC GCEE.

@@ -22,6 +22,7 @@ import { StatusBadge } from '../../components/ui/Badge';
 import { EventForm } from '../../components/admin/EventForm';
 import { api, getErrorMessage, downloadPdf } from '../../lib/api';
 import { formatHumanDate, cn, downloadBlob, getEffectiveEventStatus } from '../../lib/utils';
+import { SITE_EMAIL } from '../../lib/site';
 import type { GEvent } from '../../types';
 
 type Tab = 'details' | 'registrations' | 'email';
@@ -397,9 +398,20 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Venue</span><span className="text-navy-900">{event.venue || 'TBA'}</span></div>
             </div>
             <div className="text-center">
-              <span className="inline-block rounded-lg bg-g-blue px-6 py-2 text-xs font-bold text-white">REGISTER NOW</span>
+              <a
+                href={event.registrationLink || `/events/${event.eventId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block rounded-lg bg-g-blue px-6 py-2 text-xs font-bold text-white"
+              >
+                REGISTER NOW
+              </a>
             </div>
-            <p className="text-center text-[10px] text-ink-muted">GDGoC GCEE Team · Government College of Engineering, Erode</p>
+            <p className="text-center text-[10px] leading-relaxed text-ink-muted">
+              GDGoC GCEE Team · Government College of Engineering, Erode
+              <br />
+              <a href={`mailto:${SITE_EMAIL}`} className="hover:text-navy-800">{SITE_EMAIL}</a>
+            </p>
           </div>
         </div>
       </div>
