@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration } from '../models';
+import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration, EVENT_CATEGORIES, EVENT_STATUSES } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { nextEventId } from '../utils/ids';
 import { todayIST, isDateBefore, formatTimeRange, isEventRegistrationOpen, getEffectiveEventStatus } from '../utils/dates';
@@ -37,10 +37,13 @@ export function serializeEvent(event: any) {
     _id: event._id,
     eventId: event.eventId,
     title: event.title,
+    slug: event.slug || '',
     description: event.description,
     shortDescription: event.shortDescription,
     banner: event.banner,
+    poster: event.poster || event.banner || '',
     date: event.date,
+    time: event.time || formatTimeRange(event.startTime, event.endTime),
     startTime: event.startTime,
     endTime: event.endTime,
     venue: event.venue,
@@ -583,6 +586,122 @@ export async function myEvents(req: AuthRequest, res: Response) {
 
 // ---------- ADMIN ----------
 
+/** Safe request summary logging (field names only — never values). */
+function logAdminAction(route: string, req: any, normalized?: Record<string, unknown>) {
+  try {
+    const keys = req?.body && typeof req.body === 'object' ? Object.keys(req.body) : [];
+    const posterLen = typeof req?.body?.poster === 'string' ? req.body.poster.length : 0;
+    console.log(
+      `[ADMIN EVENT] ${route} | received fields: [${keys.join(', ')}]` +
+        ` | normalized fields: [${normalized ? Object.keys(normalized).join(', ') : '-'}]` +
+        (posterLen ? ` | poster: dataURL(${posterLen} chars)` : '')
+    );
+  } catch {
+    // logging must never break the request
+  }
+}
+
+/** Structured validation-error response (never leak raw Mongoose text first). */
+function validationError(res: Response, errors: Record<string, string>) {
+  res.status(400).json({
+    success: false,
+    message: 'Validation failed. Please check the highlighted fields.',
+    errors,
+  });
+}
+
+const asTrimmed = (v: unknown) => (typeof v === 'string' ? v.trim() : v);
+const asString = (v: unknown, fallback = '') => {
+  if (v === undefined || v === null) return fallback;
+  return String(v).trim();
+};
+const asStringArray = (v: unknown): string[] => {
+  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
+  if (typeof v === 'string') return v.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
+};
+const asNumber = (v: unknown, fallback = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+const asBool = (v: unknown, fallback = false) => {
+  if (v === undefined || v === null || v === '') return fallback;
+  return Boolean(v);
+};
+
+function generateSlugFromTitle(title: string): string {
+  return String(title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+    .slice(0, 80);
+}
+
+/**
+ * Canonical Event payload builder.
+ * Accepts both new-style fields (category/banner/startTime/...) and
+ * legacy aliases (eventType/poster/time/slug/registrationUrl/googleFormUrl)
+ * and produces exactly the object the database expects.
+ */
+export function normalizeEventPayload(body: any = {}) {
+  const categoryRaw = asString(body.category || body.eventType || 'Other');
+  const category = (EVENT_CATEGORIES as readonly string[]).includes(categoryRaw) ? categoryRaw : 'Other';
+
+  const startTime = asString(body.startTime);
+  const endTime = asString(body.endTime);
+  const time =
+    asString(body.time) ||
+    (startTime || endTime ? formatTimeRange(startTime, endTime) : '');
+
+  // Poster and banner are the same asset under two names; keep them mirrored.
+  const image = asString(body.poster || body.banner);
+
+  const isInauguration = asBool(body.isInauguration, false);
+
+  const statusRaw = String(asString(body.status, 'UPCOMING')).toUpperCase();
+  const status = (EVENT_STATUSES as readonly string[]).includes(statusRaw)
+    ? (statusRaw as (typeof EVENT_STATUSES)[number])
+    : 'UPCOMING';
+
+  const payload: Record<string, unknown> = {
+    title: asString(body.title),
+    // Slug is generated synchronously here AND by a schema pre-validate hook,
+    // so it can never be undefined regardless of the write path.
+    slug: asString(body.slug) || generateSlugFromTitle(asString(body.title)),
+    date: body.date,
+    time,
+    startTime,
+    endTime,
+    venue: asString(body.venue),
+    description: asString(body.description),
+    shortDescription: asString(body.shortDescription),
+    banner: image,
+    poster: image,
+    category,
+    eventType: category,
+    speaker: asString(body.speaker),
+    speakerBio: asString(body.speakerBio),
+    speakers: asStringArray(body.speakers),
+    agenda: asString(body.agenda),
+    technologies: asStringArray(body.technologies),
+    registrationEnabled: asBool(body.registrationEnabled, true),
+    registrationDeadline: asString(body.registrationDeadline),
+    capacity: Math.max(0, asNumber(body.capacity, 0)),
+    googleFormUrl: asString(body.googleFormUrl || body.registrationUrl),
+    registrationLink: asString(body.registrationLink),
+    manualRegistrationCount: Math.max(0, asNumber(body.manualRegistrationCount, 0)),
+    isCertificateEligible: isInauguration ? false : asBool(body.isCertificateEligible, false),
+    isInauguration,
+    status,
+  };
+
+  // Remove keys that are undefined so Mongoose defaults apply cleanly.
+  for (const key of Object.keys(payload)) {
+    if (payload[key] === undefined) delete payload[key];
+  }
+  return payload;
+}
+
 // GET /api/admin/events
 export async function adminListEvents(_: any, res: Response) {
   try {
@@ -626,40 +745,45 @@ export async function adminCreateEvent(req: any, res: Response) {
   try {
     await connectDB();
 
-    const { title, date } = req.body;
-    if (!title || !date) {
-      res.status(400).json({ success: false, message: 'Title and date are required.' });
+    const eventData = normalizeEventPayload(req.body);
+
+    const errors: Record<string, string> = {};
+    if (!eventData.title) errors.title = 'Event title is required.';
+    if (!eventData.date || isNaN(new Date(eventData.date as any).getTime())) {
+      errors.date = 'A valid event date is required.';
+    }
+    if (Object.keys(errors).length > 0) {
+      logAdminAction('POST /api/admin/events [invalid]', req, eventData);
+      validationError(res, errors);
       return;
     }
 
     const eventId = await nextEventId();
-    const event = await EventModel.create({
-      eventId,
-      title,
-      description: req.body.description || '',
-      shortDescription: req.body.shortDescription || '',
-      banner: req.body.banner || '',
-      date,
-      startTime: req.body.startTime || '',
-      endTime: req.body.endTime || '',
-      venue: req.body.venue || '',
-      speaker: req.body.speaker || '',
-      speakerBio: req.body.speakerBio || '',
-      category: req.body.category || 'Workshop',
-      technologies: req.body.technologies || [],
-      registrationEnabled: req.body.registrationEnabled ?? true,
-      registrationDeadline: req.body.registrationDeadline || '',
-      capacity: Number(req.body.capacity) || 0,
-      googleFormUrl: req.body.googleFormUrl || '',
-      registrationLink: req.body.registrationLink || '',
-      manualRegistrationCount: Number(req.body.manualRegistrationCount) || 0,
-      isCertificateEligible: Boolean(req.body.isCertificateEligible),
-      isInauguration: Boolean(req.body.isInauguration),
-      status: req.body.status || 'UPCOMING',
-    });
 
+    let event: any = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        event = await EventModel.create({ ...eventData, eventId });
+        break;
+      } catch (err: any) {
+        // Duplicate slug — regenerate deterministically and retry.
+        if (err?.code === 11000 && String(err?.message || '').includes('slug')) {
+          eventData.slug = `${String(eventData.slug || 'event')}-${Math.random().toString(36).slice(2, 6)}`;
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!event) {
+      res.status(500).json({ success: false, message: 'Could not allocate a unique slug. Please retry.' });
+      return;
+    }
+
+    logAdminAction('POST /api/admin/events', req, eventData);
     res.status(201).json({ success: true, message: 'Event created successfully.', event: serializeEvent(event) });
   } catch (err: any) {
+    console.error('[ADMIN EVENT] create failed:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -675,21 +799,43 @@ export async function adminUpdateEvent(req: any, res: Response) {
       return;
     }
 
-    const allowed = [
-      'title', 'description', 'shortDescription', 'banner', 'date', 'startTime', 'endTime', 'venue',
-      'speaker', 'speakerBio', 'category', 'technologies', 'registrationEnabled', 'registrationDeadline',
-      'capacity', 'googleFormUrl', 'registrationLink', 'manualRegistrationCount', 'isCertificateEligible', 'isInauguration', 'status',
-    ];
-    for (const key of allowed) {
-      if (req.body[key] !== undefined) {
-        (existing as any)[key] = (key === 'capacity' || key === 'manualRegistrationCount') ? Number(req.body[key]) || 0 : req.body[key];
-      }
+    const eventData = normalizeEventPayload({
+      ...req.body,
+      // Never change the slug implicitly on update; keep the stored one unless explicitly provided.
+      slug: req.body?.slug || undefined,
+    });
+
+    // Empty slug on update means "keep the existing one".
+    if (!eventData.slug) delete (eventData as any).slug;
+    if (!eventData.time) delete (eventData as any).time;
+
+    const errors: Record<string, string> = {};
+    if (!eventData.title) errors.title = 'Event title is required.';
+    if (!eventData.date || isNaN(new Date(eventData.date as any).getTime())) {
+      errors.date = 'A valid event date is required.';
     }
+    if (Object.keys(errors).length > 0) {
+      logAdminAction(`PUT /api/admin/events/${req.params.eventId} [invalid]`, req, eventData);
+      validationError(res, errors);
+      return;
+    }
+
+    delete (eventData as any)._id;
+
+    Object.assign(existing, eventData);
     await existing.save();
 
+    logAdminAction(`PUT /api/admin/events/${req.params.eventId}`, req, eventData);
     const registeredCount = await Registration.countDocuments({ eventId: existing._id, status: 'REGISTERED' });
     res.json({ success: true, message: 'Event updated successfully.', event: serializeEvent({ ...existing.toObject(), registeredCount }) });
   } catch (err: any) {
+    if (err?.name === 'ValidationError') {
+      const errors: Record<string, string> = {};
+      for (const [path, e] of Object.entries<any>(err.errors || {})) errors[path] = e.message;
+      validationError(res, errors);
+      return;
+    }
+    console.error('[ADMIN EVENT] update failed:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }

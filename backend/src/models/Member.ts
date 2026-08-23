@@ -1,43 +1,94 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+/**
+ * Canonical Member model.
+ *
+ * A member is a community/team profile. Contact/application details
+ * (email, phone, registerNumber, skills, areasOfInterest, whyJoin) are stored
+ * alongside team display fields (team, role, photo, socialLinks, order).
+ * Only `name` and `email` are hard-required at the database level; the admin
+ * controller enforces the richer contract explicitly so legacy seeded members
+ * (which predate these fields) remain editable.
+ */
+
+export const TEAMS = [
+  'Core Team',
+  'Student Coordinators',
+  'Technical Team',
+  'Design Team',
+  'Event Team',
+  'Community Members',
+];
+
 export interface IMember extends Document {
   name: string;
   email: string;
-  phone: string;
-  college: string;
-  department: string;
-  year: string;
-  registerNumber: string;
-  skills: string;
-  githubUrl: string;
-  linkedinUrl: string;
-  areasOfInterest: string;
-  whyJoin: string;
+  phone?: string;
+  college?: string;
+  department?: string;
+  year?: string;
+  registerNumber?: string;
+  skills?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  areasOfInterest?: string;
+  whyJoin?: string;
   status: 'active' | 'rejected' | 'pending';
-    team: any;
-joinedDate: Date;
+  joinedDate?: Date;
+  team?: string;
+  role?: string;
+  coordinatorRole?: string;
+  photo?: string;
+  socialLinks?: {
+    github?: string;
+    linkedin?: string;
+    instagram?: string;
+    twitter?: string;
+  };
+  order?: number;
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+const socialLinksSchema = new Schema(
+  {
+    github: { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    instagram: { type: String, default: '' },
+    twitter: { type: String, default: '' },
+  },
+  { _id: false }
+);
 
 const memberSchema = new Schema<IMember>(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    phone: { type: String, required: true },
-    college: { type: String, required: true },
-    department: { type: String, required: true },
-    year: { type: String, required: true },
-    registerNumber: { type: String, required: true, unique: true },
-    skills: { type: String, required: true },
+    name: { type: String, required: [true, 'Name is required.'], trim: true },
+    email: { type: String, required: [true, 'Email is required.'], unique: true, lowercase: true, trim: true },
+    phone: { type: String, default: '' },
+    college: { type: String, default: 'Government College of Engineering, Erode' },
+    department: { type: String, default: '' },
+    year: { type: String, default: '' },
+    registerNumber: { type: String, default: '', trim: true },
+    skills: { type: String, default: '' },
     githubUrl: { type: String, default: '' },
     linkedinUrl: { type: String, default: '' },
-    areasOfInterest: { type: String, required: true },
-    whyJoin: { type: String, required: true },
+    areasOfInterest: { type: String, default: '' },
+    whyJoin: { type: String, default: '' },
     status: {
       type: String,
       enum: ['active', 'rejected', 'pending'],
       default: 'active',
     },
     joinedDate: { type: Date, default: Date.now },
+    // Team display fields used by the public site and admin dashboard.
+    team: { type: String, enum: TEAMS, default: 'Community Members' },
+    role: { type: String, default: 'Member', trim: true },
+    coordinatorRole: { type: String, default: '' },
+    photo: { type: String, default: '' },
+    socialLinks: { type: socialLinksSchema, default: () => ({}) },
+    order: { type: Number, default: 0, min: 0 },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

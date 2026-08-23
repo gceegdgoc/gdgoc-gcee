@@ -257,6 +257,7 @@ export const EVENT_CATEGORIES = [
 
 export const GALLERY_CATEGORIES = ['All', 'Workshops', 'Hackathons', 'Meetups', 'Team'];
 
+// Keep in sync with backend/src/models/Resource.ts RESOURCE_CATEGORIES.
 export const RESOURCE_CATEGORIES = [
   'Web Development',
   'AI/ML',
@@ -266,6 +267,7 @@ export const RESOURCE_CATEGORIES = [
   'Cybersecurity',
   'Open Source',
   'Programming',
+  'Other',
 ];
 
 export const DEPARTMENTS = [

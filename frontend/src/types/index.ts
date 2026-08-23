@@ -33,10 +33,13 @@ export interface GEvent {
   _id: string;
   eventId: string;
   title: string;
+  slug?: string;
   description: string;
   shortDescription: string;
   banner: string;
+  poster?: string;
   date: string;
+  time?: string;
   startTime: string;
   endTime: string;
   venue: string;
@@ -146,12 +149,21 @@ export interface Campaign {
 export interface Member {
   _id: string;
   name: string;
+  email?: string;
+  phone?: string;
+  college?: string;
+  registerNumber?: string;
+  skills?: string;
+  areasOfInterest?: string;
+  whyJoin?: string;
   team: string;
   role: string;
   coordinatorRole: string;
   department: string;
   year: string;
   photo: string;
+  order?: number;
+  isActive?: boolean;
   socialLinks?: {
     github?: string;
     linkedin?: string;
@@ -179,7 +191,9 @@ export interface ResourceItem {
   _id: string;
   title: string;
   description: string;
-  url: string;
+  /** Canonical URL field (legacy `url` kept for compatibility). */
+  link?: string;
+  url?: string;
   category: string;
   type?: string;
   uploadedBy?: string;

@@ -1,5 +1,5 @@
 export * from './Admin';
-export { Event as EventModel, IEvent } from './Event';
+export { Event as EventModel, IEvent, EVENT_CATEGORIES, EVENT_STATUSES } from './Event';
 export * from './Member';
 export * from './Registration';
 export * from './Student';
@@ -16,4 +16,4 @@ export * from './EmailLog';
 export * from './CertificateCampaign';
 export * from './CoordinatorRole';
 export * from './BulkEmailLog';
-export const TEAMS = ['Technical', 'Design', 'Management', 'Content'];
+// Canonical TEAMS list lives in ./Member (single source of truth).

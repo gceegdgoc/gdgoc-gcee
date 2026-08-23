@@ -132,6 +132,9 @@ async function buildCertificateDoc(campaign: any, student: any, eligibility: Eli
 
   return Certificate.create({
     certificateId,
+    // Campaign certificates span multiple events; anchor them to the first
+    // eligible event so the required eventId reference stays a real ObjectId.
+    eventId: eligibility.eligibleEvents[0]?._id,
     campaignId: campaign._id,
     studentId: student._id,
     studentName: student.name,

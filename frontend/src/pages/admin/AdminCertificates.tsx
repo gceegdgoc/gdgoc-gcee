@@ -33,10 +33,13 @@ interface Row {
 }
 
 interface EventOption {
+  _id: string;
   eventId: string;
   title: string;
   date: string;
 }
+
+const OBJECT_ID_RE = /^[0-9a-fA-F]{24}$/;
 
 export default function AdminCertificates() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -93,12 +96,13 @@ export default function AdminCertificates() {
 
   const handleSelectEvent = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
-    const selected = events.find((ev) => ev.eventId === selectedId);
+    const selected = events.find((ev) => ev._id === selectedId);
     if (selected) {
-      setEventId(selected.eventId);
+      // Store the real MongoDB _id — certificate records reference it.
+      setEventId(selected._id);
       setEventName(selected.title);
       if (selected.date) {
-        setEventDate(selected.date.slice(0, 10));
+        setEventDate(String(selected.date).slice(0, 10));
       }
     }
   };
@@ -109,8 +113,12 @@ export default function AdminCertificates() {
       toast.error('Please enter the student name.');
       return;
     }
-    if (!eventName.trim() || !eventId) {
-      toast.error('Please select or enter a valid event (ensure event is picked from the dropdown to get its ID).');
+    if (!eventId || !OBJECT_ID_RE.test(eventId)) {
+      toast.error('Please select the event from the dropdown so a valid event is linked to the certificate.');
+      return;
+    }
+    if (!eventName.trim()) {
+      toast.error('Please enter the event name.');
       return;
     }
     if (!eventDate) {
@@ -375,24 +383,34 @@ export default function AdminCertificates() {
           <form onSubmit={handleQuickGenerate} className="lg:col-span-5 space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-navy-800 mb-1">
-                Event Name *
+                Event (select) *
               </label>
               {events.length > 0 && (
                 <div className="mb-2">
                   <select
                     onChange={handleSelectEvent}
+                    value={eventId}
                     className="w-full text-xs rounded-lg border border-navy-200 bg-navy-50/50 p-2 text-navy-800"
-                    defaultValue=""
                   >
                     <option value="" disabled>
-                      ⚡ Pick from recent events…
+                      ⚡ Pick an event (required)…
                     </option>
                     {events.map((ev) => (
-                      <option key={ev.eventId} value={ev.eventId}>
+                      <option key={ev._id} value={ev._id}>
                         {ev.title}
                       </option>
                     ))}
                   </select>
+                  {!eventId && (
+                    <p className="mt-1 text-[11px] text-red-500">
+                      A real event must be selected so the certificate is linked to it.
+                    </p>
+                  )}
+                  {eventId && (
+                    <p className="mt-1 text-[11px] text-green-600">
+                      Linked to MongoDB event ID: <span className="font-mono">{eventId}</span>
+                    </p>
+                  )}
                 </div>
               )}
               <input
@@ -467,7 +485,7 @@ export default function AdminCertificates() {
                 disabled={downloadingPreview}
                 className="btn-outline flex-1 text-xs py-2.5 inline-flex items-center justify-center gap-1.5"
               >
-                {downloadingPreview ? <Spinner size="sm" /> : <FileDown className="h-4 w-4" />}
+                {downloadingPreview ? <Spinner className="h-4 w-4 border-2" /> : <FileDown className="h-4 w-4" />}
                 <span>Download Sample PDF</span>
               </button>
 
@@ -476,7 +494,7 @@ export default function AdminCertificates() {
                 disabled={generating}
                 className="btn-primary flex-1 text-xs py-2.5 inline-flex items-center justify-center gap-1.5"
               >
-                {generating ? <Spinner size="sm" /> : <Send className="h-4 w-4" />}
+                {generating ? <Spinner className="h-4 w-4 border-2" /> : <Send className="h-4 w-4" />}
                 <span>{sendEmail ? 'Generate & Send Email' : 'Generate Certificate'}</span>
               </button>
             </div>

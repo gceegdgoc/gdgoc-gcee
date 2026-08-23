@@ -1,8 +1,10 @@
 // @ts-nocheck
 import type { Response } from 'express';
+import mongoose from 'mongoose';
 import { Certificate } from '../models/Certificate';
 import { CertificateCampaign } from '../models/CertificateCampaign';
 import { Student } from '../models/Student';
+import { Event as EventModel } from '../models/Event';
 import type { AuthRequest } from '../middleware/auth';
 import { formatDotDate, todayIST } from '../utils/dates';
 import { generateCertificatePDF } from '../utils/pdf';
@@ -236,26 +238,58 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     const { studentName, studentEmail, eventId, eventName, eventDate, sendEmail = true } = req.body;
 
     if (!studentName || !studentName.trim()) {
-      res.status(400).json({ success: false, message: 'Student name is required.' });
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: { studentName: 'Student name is required.' },
+      });
       return;
     }
-    if (!eventName || !eventName.trim()) {
-      res.status(400).json({ success: false, message: 'Event name is required.' });
+    if (!eventId || typeof eventId !== 'string' || !mongoose.Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: { eventId: 'Please select a valid event from the list.' },
+      });
       return;
     }
-    if (!eventDate || !eventDate.trim()) {
-      res.status(400).json({ success: false, message: 'Event date is required.' });
+
+    // Resolve the real event from MongoDB — the form's eventId must be an
+    // actual Event _id, never a display label or business code like "EV-2026-0001".
+    const eventRecord = await EventModel.findById(eventId).lean();
+    if (!eventRecord) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: { eventId: 'Selected event no longer exists. Please pick another event.' },
+      });
       return;
     }
-    if (!eventId) {
-      res.status(400).json({ success: false, message: 'Event ID is required. Please select a valid event.' });
+
+    const cleanEventId = eventRecord._id;
+    const cleanEventName = (eventName || eventRecord.title || '').trim();
+    const cleanEventDate =
+      (eventDate || String(eventRecord.date || '').slice(0, 10) || '').trim();
+
+    if (!cleanEventName) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: { eventName: 'Event name is required.' },
+      });
+      return;
+    }
+    if (!cleanEventDate) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: { eventDate: 'Event date is required.' },
+      });
       return;
     }
 
     const cleanName = studentName.trim();
     const cleanEmail = (studentEmail || '').trim().toLowerCase();
-    const cleanEventName = eventName.trim();
-    const cleanEventDate = eventDate.trim();
     const issueDate = todayIST();
 
     const studentRecord = cleanEmail ? await Student.findOne({ email: cleanEmail }).lean() : null;
@@ -280,8 +314,8 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       try {
         cert = await Certificate.create({
           certificateId,
-          studentId: studentRecord?._id || null, // Will throw validation error if strict, but let's assume it's optionally allowed or populated
-          eventId, // This solves the Certificate validation failed: eventId required!
+          studentId: studentRecord?._id || undefined,
+          eventId: cleanEventId,
           studentName: cleanName,
           studentEmail: cleanEmail,
           organization: 'GDGoC GCEE',

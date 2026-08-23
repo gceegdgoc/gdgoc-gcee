@@ -1,5 +1,6 @@
 // @ts-nocheck
 import type { Response } from 'express';
+import mongoose from 'mongoose';
 import { Member, TEAMS } from '../models';
 import { connectDB } from '../config/db';
 
@@ -7,13 +8,87 @@ function serialize(m: any) {
   return {
     _id: m._id,
     name: m.name,
+    email: m.email || '',
+    phone: m.phone || '',
+    college: m.college || '',
+    registerNumber: m.registerNumber || '',
+    skills: m.skills || '',
+    areasOfInterest: m.areasOfInterest || '',
+    whyJoin: m.whyJoin || '',
     team: m.team,
     role: m.role,
     coordinatorRole: m.coordinatorRole || '',
-    department: m.department,
-    year: m.year,
-    photo: m.photo,
-    socialLinks: m.socialLinks,
+    department: m.department || '',
+    year: m.year || '',
+    photo: m.photo || '',
+    socialLinks: {
+      github: m.socialLinks?.github || '',
+      linkedin: m.socialLinks?.linkedin || '',
+      instagram: m.socialLinks?.instagram || '',
+      twitter: m.socialLinks?.twitter || '',
+    },
+    order: m.order ?? 0,
+    isActive: m.isActive !== false,
+  };
+}
+
+/** Safe request summary logging (field names only — never values). */
+function logAdminAction(route: string, req: any, normalized?: Record<string, unknown>) {
+  try {
+    const keys = req?.body && typeof req.body === 'object' ? Object.keys(req.body) : [];
+    console.log(
+      `[ADMIN MEMBER] ${route} | received fields: [${keys.join(', ')}]` +
+        ` | normalized fields: [${normalized ? Object.keys(normalized).join(', ') : '-'}]`
+    );
+  } catch {
+    // logging must never break the request
+  }
+}
+
+function validationError(res: Response, errors: Record<string, string>) {
+  res.status(400).json({
+    success: false,
+    message: 'Validation failed. Please check the highlighted fields.',
+    errors,
+  });
+}
+
+const asTrimmedString = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeSocialLinks(input: any): Record<string, string> {
+  const src = input && typeof input === 'object' ? input : {};
+  return {
+    github: asTrimmedString(src.github),
+    linkedin: asTrimmedString(src.linkedin),
+    instagram: asTrimmedString(src.instagram),
+    twitter: asTrimmedString(src.twitter),
+  };
+}
+
+/**
+ * Canonical Member payload builder.
+ * Every field the admin form sends is preserved — nothing silently dropped.
+ */
+export function normalizeMemberPayload(body: any = {}) {
+  return {
+    name: asTrimmedString(body.name),
+    email: asTrimmedString(body.email).toLowerCase(),
+    phone: asTrimmedString(body.phone),
+    college: asTrimmedString(body.college) || 'Government College of Engineering, Erode',
+    department: asTrimmedString(body.department),
+    year: asTrimmedString(body.year),
+    registerNumber: asTrimmedString(body.registerNumber),
+    skills: asTrimmedString(body.skills),
+    areasOfInterest: asTrimmedString(body.areasOfInterest),
+    whyJoin: asTrimmedString(body.whyJoin),
+    team: asTrimmedString(body.team) || 'Community Members',
+    role: asTrimmedString(body.role) || 'Member',
+    coordinatorRole: asTrimmedString(body.coordinatorRole),
+    photo: asTrimmedString(body.photo),
+    socialLinks: normalizeSocialLinks(body.socialLinks),
+    order: Math.max(0, Number(body.order) || 0),
+    isActive: body.isActive === undefined ? true : Boolean(body.isActive),
   };
 }
 
@@ -21,7 +96,7 @@ function serialize(m: any) {
 export async function listMembers(_: any, res: Response) {
   try {
     await connectDB();
-    const members = await Member.find({ isActive: true }).sort({ team: 1, order: 1, name: 1 }).lean();
+    const members = await Member.find({ isActive: { $not: { $eq: false } } }).sort({ team: 1, order: 1, name: 1 }).lean();
     const grouped: Record<string, any[]> = {};
     for (const t of TEAMS) grouped[t] = [];
     for (const m of members) {
@@ -49,24 +124,35 @@ export async function adminListMembers(_: any, res: Response) {
 export async function createMember(req: any, res: Response) {
   try {
     await connectDB();
-    const { name } = req.body;
-    if (!name) {
-      res.status(400).json({ success: false, message: 'Member name is required.' });
+
+    const data = normalizeMemberPayload(req.body);
+
+    const errors: Record<string, string> = {};
+    if (!data.name) errors.name = 'Member name is required.';
+    if (!data.email) errors.email = 'Email is required.';
+    else if (!EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
+    if (Object.keys(errors).length > 0) {
+      logAdminAction('POST /api/admin/members [invalid]', req, data);
+      validationError(res, errors);
       return;
     }
-    const member = await Member.create({
-      name,
-      team: req.body.team || 'Community Members',
-      role: req.body.role || 'Member',
-      coordinatorRole: req.body.coordinatorRole || '',
-      department: req.body.department || '',
-      year: req.body.year || '',
-      photo: req.body.photo || '',
-      socialLinks: req.body.socialLinks || {},
-      order: Number(req.body.order) || 0,
-    });
+
+    const member = await Member.create(data);
+    logAdminAction('POST /api/admin/members', req, data);
     res.status(201).json({ success: true, message: 'Member added.', member: serialize(member) });
   } catch (err: any) {
+    if (err?.code === 11000) {
+      const dupField = String(Object.keys(err.keyPattern || {})[0] || 'email');
+      validationError(res, { [dupField]: `That ${dupField} is already used by another member.` });
+      return;
+    }
+    if (err?.name === 'ValidationError') {
+      const errors: Record<string, string> = {};
+      for (const [path, e] of Object.entries<any>(err.errors || {})) errors[path] = e.message;
+      validationError(res, errors);
+      return;
+    }
+    console.error('[ADMIN MEMBER] create failed:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -80,13 +166,55 @@ export async function updateMember(req: any, res: Response) {
       res.status(404).json({ success: false, message: 'Member not found.' });
       return;
     }
-    const allowed = ['name', 'team', 'role', 'coordinatorRole', 'department', 'year', 'photo', 'socialLinks', 'order', 'isActive'];
-    for (const key of allowed) {
-      if (req.body[key] !== undefined) (member as any)[key] = req.body[key];
+
+    // Overlay provided fields on the existing document; unspecified fields stay untouched.
+    const overlay: any = {};
+    const passthrough = [
+      'name', 'email', 'phone', 'college', 'department', 'year', 'registerNumber',
+      'skills', 'areasOfInterest', 'whyJoin', 'team', 'role', 'coordinatorRole',
+      'photo', 'order', 'isActive',
+    ];
+    for (const key of passthrough) {
+      if (req.body[key] !== undefined) overlay[key] = req.body[key];
     }
-    await member.save();
+    if (req.body.socialLinks !== undefined) overlay.socialLinks = normalizeSocialLinks(req.body.socialLinks);
+
+    const data = normalizeMemberPayload({ ...member.toObject(), ...overlay });
+
+    const errors: Record<string, string> = {};
+    if (!data.name) errors.name = 'Member name is required.';
+    if (!data.email) errors.email = 'Email is required.';
+    else if (!EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email address.';
+    if (Object.keys(errors).length > 0) {
+      logAdminAction(`PUT /api/admin/members/${req.params.id} [invalid]`, req, data);
+      validationError(res, errors);
+      return;
+    }
+
+    delete (data as any)._id;
+    delete (data as any).createdAt;
+    delete (data as any).updatedAt;
+    Object.assign(member, data);
+
+    // validateModifiedOnly keeps legacy members (created before richer fields
+    // existed) editable while still validating everything the admin changed.
+    await member.save({ validateModifiedOnly: true });
+
+    logAdminAction(`PUT /api/admin/members/${req.params.id}`, req, data);
     res.json({ success: true, message: 'Member updated.', member: serialize(member) });
   } catch (err: any) {
+    if (err?.code === 11000) {
+      const dupField = String(Object.keys(err.keyPattern || {})[0] || 'email');
+      validationError(res, { [dupField]: `That ${dupField} is already used by another member.` });
+      return;
+    }
+    if (err?.name === 'ValidationError') {
+      const errors: Record<string, string> = {};
+      for (const [path, e] of Object.entries<any>(err.errors || {})) errors[path] = e.message;
+      validationError(res, errors);
+      return;
+    }
+    console.error('[ADMIN MEMBER] update failed:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 }

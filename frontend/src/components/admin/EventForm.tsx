@@ -90,15 +90,32 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       return;
     }
     setBusy(true);
+    // Canonical API contract — field names match the backend Event model exactly.
     const payload = {
-      ...form,
-      slug: generateSlug(form.title),
-      capacity: form.capacity ? Number(form.capacity) : 0,
+      title: form.title.trim(),
+      shortDescription: form.shortDescription,
+      description: form.description,
+      date: form.date,
+      time: form.time,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      venue: form.venue,
+      speaker: form.speaker,
+      speakerBio: form.speakerBio,
+      category: form.eventType,
       technologies: form.technologies
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
+      registrationEnabled: form.registrationEnabled,
+      registrationDeadline: form.registrationDeadline,
+      capacity: form.capacity ? Number(form.capacity) : 0,
+      registrationLink: form.registrationLink,
       isCertificateEligible: form.isInauguration ? false : form.isCertificateEligible,
+      isInauguration: form.isInauguration,
+      status: form.status,
+      poster: form.poster,
+      slug: generateSlug(form.title),
     };
 
     try {
