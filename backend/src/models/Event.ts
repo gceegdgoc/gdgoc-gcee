@@ -47,7 +47,6 @@ export interface IEvent extends Document {
   registrationStatus?: 'open' | 'closed';
   isPublished?: boolean;
   registrationDeadline?: string;
-  capacity: number;
   googleFormUrl?: string;
   registrationUrl?: string;
   registrationLink?: string;
@@ -98,7 +97,8 @@ const eventSchema = new Schema<IEvent>(
     registrationStatus: { type: String, enum: ['open', 'closed'], default: 'open' },
     isPublished: { type: Boolean, default: true },
     registrationDeadline: { type: String, default: '' },
-    capacity: { type: Number, default: 0, min: 0 },
+    // Legacy documents may still contain a `capacity` field; it is intentionally
+    // NOT part of the schema so the application ignores registration limits.
     googleFormUrl: { type: String, default: '' },
     registrationUrl: { type: String, default: '' },
     registrationLink: { type: String, default: '' },

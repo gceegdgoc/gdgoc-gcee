@@ -56,7 +56,6 @@ export function serializeEvent(event: any) {
     registrationEnabled: event.registrationEnabled,
     isRegistrationOpen,
     registrationDeadline: event.registrationDeadline,
-    capacity: event.capacity,
     googleFormUrl: event.googleFormUrl || '',
     registrationLink: event.registrationLink || '',
     manualRegistrationCount: event.manualRegistrationCount || 0,
@@ -331,14 +330,6 @@ export async function registerPublicEvent(req: any, res: Response) {
       return;
     }
 
-    if (event.capacity > 0) {
-      const currentCount = await Registration.countDocuments({ eventId: event._id, status: 'REGISTERED' });
-      if (currentCount >= event.capacity) {
-        res.status(400).json({ success: false, message: 'This event has reached maximum capacity.' });
-        return;
-      }
-    }
-
     const registrationId = `REG-${event.eventId.toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
     // Record in Registration (Primary relationship: Event -> Registrations -> Students)
@@ -453,14 +444,6 @@ export async function registerForEvent(req: AuthRequest, res: Response) {
         message: 'Registration for this event is closed. Registration closes 1 day before the event date.',
       });
       return;
-    }
-
-    if (event.capacity > 0) {
-      const count = await Registration.countDocuments({ eventId: event._id, status: 'REGISTERED' });
-      if (count >= event.capacity) {
-        res.status(400).json({ success: false, message: 'This event has reached its maximum capacity.' });
-        return;
-      }
     }
 
     const existing = await Registration.findOne({ studentId: req.studentId, eventId: event._id });
@@ -688,7 +671,6 @@ export function normalizeEventPayload(body: any = {}) {
     technologies: asStringArray(body.technologies),
     registrationEnabled: asBool(body.registrationEnabled, true),
     registrationDeadline: asString(body.registrationDeadline),
-    capacity: Math.max(0, asNumber(body.capacity, 0)),
     googleFormUrl: asString(body.googleFormUrl || body.registrationUrl),
     registrationLink: asString(body.registrationLink),
     manualRegistrationCount: Math.max(0, asNumber(body.manualRegistrationCount, 0)),
