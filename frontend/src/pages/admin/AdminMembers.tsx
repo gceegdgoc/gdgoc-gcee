@@ -34,6 +34,16 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
+/** Inline validation error rendered directly below the invalid field. */
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="mt-1 text-[11px] font-medium text-g-red">
+      {message}
+    </p>
+  );
+}
+
 export default function AdminMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -229,18 +239,20 @@ export default function AdminMembers() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Name <span className="text-g-red">*</span></label>
-              <input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+              <input aria-invalid={!!fieldErrors.name} className={cn('input', fieldErrors.name && 'border-g-red')} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+              <FieldError message={fieldErrors.name} />
             </div>
             <div>
               <label className="label">Email <span className="text-g-red">*</span></label>
-              <input type="email" className="input" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              <input type="email" aria-invalid={!!fieldErrors.email} className={cn('input', fieldErrors.email && 'border-g-red')} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              <FieldError message={fieldErrors.email} />
             </div>
             <div>
-              <label className="label">Phone <span className="text-g-red">*</span></label>
+              <label className="label">Phone</label>
               <input type="tel" className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
             </div>
             <div>
-              <label className="label">Register Number <span className="text-g-red">*</span></label>
+              <label className="label">Register Number</label>
               <input className="input" value={form.registerNumber} onChange={(e) => setForm((f) => ({ ...f, registerNumber: e.target.value }))} />
             </div>
           </div>
