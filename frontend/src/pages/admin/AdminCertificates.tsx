@@ -19,6 +19,7 @@ import { Modal } from '../../components/ui/Modal';
 import { CertificatePreview } from '../../components/admin/CertificatePreview';
 import { api, getErrorMessage, downloadPdf } from '../../lib/api';
 import { cn, formatDotDate } from '../../lib/utils';
+import type { GEvent, QuickGenerateCertificateRequest, QuickGenerateCertificateResponse } from '../../types';
 
 interface Row {
   certificateId: string;
@@ -32,14 +33,20 @@ interface Row {
   status: string;
 }
 
-interface EventOption {
-  _id: string;
-  eventId: string;
-  title: string;
-  date: string;
-}
+/** Serialized event returned by GET /api/events (subset used here). */
+type EventOption = Pick<GEvent, '_id' | 'eventId' | 'title' | 'date'>;
 
 const OBJECT_ID_RE = /^[0-9a-fA-F]{24}$/;
+
+/** Normalize an API date value (ISO timestamp or YYYY-MM-DD) to YYYY-MM-DD. */
+function normalizeToISODate(value: string | undefined): string {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+  }
+  return d.toISOString().slice(0, 10);
+}
 
 export default function AdminCertificates() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -96,19 +103,15 @@ export default function AdminCertificates() {
 
   const handleSelectEvent = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
+    if (!selectedId) return;
     const selected = events.find((ev) => ev._id === selectedId);
     if (selected) {
       // Store the real MongoDB _id — certificate records reference it.
       setEventId(selected._id);
       setEventName(selected.title);
-      if (selected.date) {
-        // The API may return a full ISO timestamp or a plain YYYY-MM-DD
-        // string; always normalize to the YYYY-MM-DD date input format.
-        const iso = new Date(selected.date).toISOString().slice(0, 10);
-        if (!Number.isNaN(new Date(iso).getTime())) {
-          setEventDate(iso);
-        }
-      }
+      // The event's stored date is authoritative for the certificate.
+      const iso = normalizeToISODate(selected.date);
+      if (iso) setEventDate(iso);
     }
   };
 
@@ -140,15 +143,17 @@ export default function AdminCertificates() {
     }
 
     setGenerating(true);
+    const payload: QuickGenerateCertificateRequest = {
+      studentName: studentName.trim(),
+      studentEmail: studentEmail.trim(),
+      // Real MongoDB Event _id resolved from the dropdown — never the name/date.
+      eventId,
+      eventName: eventName.trim(),
+      eventDate,
+      sendEmail,
+    };
     try {
-      const res = await api.post('/admin/certificates/quick-generate', {
-        studentName: studentName.trim(),
-        studentEmail: studentEmail.trim(),
-        eventId,
-        eventName: eventName.trim(),
-        eventDate,
-        sendEmail,
-      });
+      const res = await api.post<QuickGenerateCertificateResponse>('/admin/certificates/quick-generate', payload);
 
       toast.success(res.data.message || 'Certificate generated successfully!');
       setGenModalOpen(false);
@@ -440,11 +445,23 @@ export default function AdminCertificates() {
                 type="date"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
+                readOnly={Boolean(eventId)}
                 required
-                className="input text-sm"
+                className={cn('input text-sm', eventId && 'cursor-not-allowed bg-navy-50 text-navy-700')}
               />
               <p className="mt-1 text-[11px] text-ink-muted">
-                Rendered on certificate as: <strong className="text-navy-900">{formattedEventDate}</strong>
+                {eventId ? (
+                  <>
+                    Auto-filled from the selected event and locked —{' '}
+                    <strong className="text-navy-900">the server always uses the event record&apos;s stored date.</strong>{' '}
+                    Rendered on certificate as: <strong className="text-navy-900">{formattedEventDate}</strong>
+                  </>
+                ) : (
+                  <>
+                    Rendered on certificate as: <strong className="text-navy-900">{formattedEventDate}</strong>. Select an
+                    event above to lock this to its real date.
+                  </>
+                )}
               </p>
             </div>
 

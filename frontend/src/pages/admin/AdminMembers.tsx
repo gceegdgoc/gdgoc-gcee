@@ -6,9 +6,9 @@ import { PageLoader } from '../../components/ui/Spinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Modal } from '../../components/ui/Modal';
 import { ButtonSpinner } from '../../components/ui/Spinner';
-import { api, getErrorMessage } from '../../lib/api';
+import { api, getFieldErrors, getErrorMessage } from '../../lib/api';
 import { TEAMS, DEPARTMENTS, YEARS } from '../../lib/utils';
-import type { Member } from '../../types';
+import type { Member, MemberPayload } from '../../types';
 
 const emptyForm = { 
   name: '', email: '', phone: '', college: 'Government College of Engineering, Erode', 
@@ -41,6 +41,8 @@ export default function AdminMembers() {
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [busy, setBusy] = useState(false);
+  // Per-field validation errors from the backend (keyed e.g. `socialLinks.github`).
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const loadMembers = async () => {
     setLoading(true);

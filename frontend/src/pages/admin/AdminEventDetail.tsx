@@ -368,7 +368,9 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
           <h3 className="font-display text-base font-bold text-navy-900 mb-4">Sending Result</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="rounded-xl border border-navy-100 bg-white p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-navy-900">{result.totalRecipients || 0}</p>
+              <p className="font-mono text-2xl font-bold text-navy-900">
+                {result.totalRecipients ?? result.recipientCount ?? 0}
+              </p>
               <p className="text-xs text-ink-muted">Total Recipients</p>
             </div>
             <div className="rounded-xl border border-g-green/20 bg-g-green/5 p-4 text-center">
@@ -438,7 +440,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
 /* ─── Registrations Tab ─────────────────────────────────────────────── */
 
 function EventRegistrations({ eventId, event }: { eventId: string; event: GEvent }) {
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [registrations, setRegistrations] = useState<EventRegistrationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
