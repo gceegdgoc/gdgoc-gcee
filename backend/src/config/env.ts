@@ -74,7 +74,7 @@ export function getPublicAppUrl(): string {
  * Event-specific registrationLink fields are intentionally ignored for emails
  * because they may contain stale/broken deployment URLs (404 DEPLOYMENT_NOT_FOUND).
  */
-export const EMAIL_REGISTRATION_URL = 'https://gdgoc-gcee.vercel.app/';
+export const EMAIL_REGISTRATION_URL = 'https://gdgoc-gcee.vercel.app/events/EV-2026-0001';
 
 /**
  * The ONE official email address of the website.
