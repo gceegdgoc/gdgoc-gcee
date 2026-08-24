@@ -20,6 +20,92 @@ import { connectDB } from '../config/db';
 const PDF_MIME = 'application/pdf';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Stored PDFs may come back from Mongo as a Buffer, Uint8Array or legacy BSON
+ * Binary (lean queries skip Mongoose casting). Buffer.from(BSON Binary) yields
+ * an EMPTY buffer, so always normalise to a real Node Buffer before serving or
+ * attaching.
+ */
+function asPdfBuffer(value: unknown): Buffer {
+  if (!value) return Buffer.alloc(0);
+  const v = value as any;
+  if (Buffer.isBuffer(v)) return v;
+  if (typeof v.length === 'function' && typeof v.position === 'number' && v.buffer) {
+    return Buffer.from(v.buffer.subarray(0, v.position));
+  }
+  return Buffer.from(v as Uint8Array);
+}
+
+/**
+ * The ONE canonical public certificate verification route.
+ * Keep in sync with frontend/src/App.tsx (`/certificate/:certificateId`).
+ */
+const CERTIFICATE_ROUTE = '/certificate';
+
+/**
+ * True when a stored verification URL no longer matches the CURRENT public
+ * app URL (e.g. it was generated while the site lived on an old deployment).
+ * Missing/unparseable values are treated as stale so they get repaired too.
+ */
+function isStaleVerificationUrl(stored: unknown): boolean {
+  let currentOrigin = '';
+  try {
+    currentOrigin = new URL(getPublicAppUrl()).origin;
+  } catch {
+    return true;
+  }
+  if (!stored || typeof stored !== 'string') return true;
+  try {
+    return new URL(stored).origin !== currentOrigin;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Self-healing for legacy certificates created under an older deployment:
+ * their stored verificationUrl / QR code / embedded PDF QR may point at a dead
+ * domain, which would send anyone scanning the certificate to a 404. When the
+ * stored URL is stale (or missing), regenerate all link artifacts from the
+ * CURRENT app URL + real certificate ID and persist them. After the first
+ * repair the record is fresh, so subsequent requests are cheap no-ops.
+ * Never throws — callers degrade gracefully to whatever is stored.
+ */
+async function ensureFreshCertificateLinks(cert: any): Promise<void> {
+  try {
+    if (!isStaleVerificationUrl(cert.verificationUrl)) return;
+
+    const appUrl = getPublicAppUrl();
+    const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
+    const qrCode = await generateQRCodeDataURL(verificationUrl);
+    const pdfBuffer = await generateCertificatePDF({
+      certificateId: cert.certificateId,
+      studentName: cert.studentName,
+      eventName: cert.eventName || '',
+      eventDate: cert.eventDate || '',
+      issueDate: cert.issueDate,
+      qrCodeDataURL: qrCode,
+      verificationUrl,
+    });
+
+    if (cert._id) {
+      await Certificate.updateOne(
+        { _id: cert._id },
+        { $set: { verificationUrl, qrCode, pdfBuffer } }
+      );
+    }
+
+    cert.verificationUrl = verificationUrl;
+    cert.qrCode = qrCode;
+    cert.pdfBuffer = pdfBuffer;
+    console.log(
+      `[certificate] refreshed links for ${cert.certificateId} -> ${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`
+    );
+  } catch (err: any) {
+    console.warn(`[certificate] could not refresh links for ${cert.certificateId}: ${err.message}`);
+  }
+}
+
 /** Public-safe certificate view — never expose sensitive fields. */
 function publicView(cert: any) {
   return {
@@ -52,6 +138,9 @@ export async function verifyCertificate(req: any, res: Response) {
       return;
     }
 
+    // Repair legacy records whose stored QR still encodes an old deployment URL.
+    await ensureFreshCertificateLinks(cert);
+
     const campaign = await CertificateCampaign.findById(cert.campaignId).select('name').lean();
     res.json({
       success: true,
@@ -77,12 +166,19 @@ export async function downloadCertificate(req: any, res: Response) {
       return;
     }
 
+    // Repair legacy records whose stored PDF/QR still point at an old deployment.
+    await ensureFreshCertificateLinks(cert);
+
     // Serve the stored PDF buffer (generated once during certificate creation).
     if (cert.pdfBuffer) {
-      res.setHeader('Content-Type', PDF_MIME);
-      res.setHeader('Content-Disposition', `attachment; filename="${cert.certificateId}.pdf"`);
-      res.send(Buffer.from(cert.pdfBuffer));
-      return;
+      const pdf = asPdfBuffer(cert.pdfBuffer);
+      if (pdf.length > 0) {
+        res.setHeader('Content-Type', PDF_MIME);
+        res.setHeader('Content-Disposition', `attachment; filename="${cert.certificateId}.pdf"`);
+        res.send(pdf);
+        return;
+      }
+      // Empty conversion (legacy Binary edge case) — fall through and regenerate.
     }
 
     // Fallback: regenerate if pdfBuffer is missing (backward compat with old certificates).
@@ -95,7 +191,7 @@ export async function downloadCertificate(req: any, res: Response) {
       qrCodeDataURL: cert.qrCode,
       // Rebuild from the current app URL + real ID — stored URLs may point to
       // an old/dead deployment.
-      verificationUrl: `${getPublicAppUrl()}/certificate/${cert.certificateId}`,
+      verificationUrl: `${getPublicAppUrl()}${CERTIFICATE_ROUTE}/${cert.certificateId}`,
     });
 
     res.setHeader('Content-Type', PDF_MIME);
@@ -382,7 +478,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     for (let attempt = 0; attempt < 5; attempt++) {
       const certificateId = await nextCertificateId();
       const appUrl = getPublicAppUrl();
-      const verificationUrl = `${appUrl}/certificate/${certificateId}`;
+      const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${certificateId}`;
       const qrCode = await generateQRCodeDataURL(verificationUrl);
 
       const pdfBuffer = await generateCertificatePDF({
@@ -432,7 +528,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
 
     if (sendEmail) {
       const appUrl = getPublicAppUrl();
-      const verificationUrl = `${appUrl}/certificate/${cert.certificateId}`;
+      const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
       const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
 
       const { subject, html, text } = generateCertificateEmailHtml({
@@ -502,7 +598,7 @@ export async function previewCertificatePdf(req: any, res: Response) {
 
     const sampleId = 'GDGCEE-PREVIEW-001';
     const appUrl = getPublicAppUrl();
-    const verificationUrl = `${appUrl}/certificate/${sampleId}`;
+    const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${sampleId}`;
     const qrCode = await generateQRCodeDataURL(verificationUrl);
 
     const pdfBuffer = await generateCertificatePDF({
@@ -543,8 +639,11 @@ export async function resendCertificateEmail(req: any, res: Response) {
       return;
     }
 
+    // Repair legacy records whose stored PDF attachment still embeds an old QR.
+    await ensureFreshCertificateLinks(cert);
+
     const appUrl = getPublicAppUrl();
-    const verificationUrl = `${appUrl}/certificate/${cert.certificateId}`;
+    const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
     const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
 
     const { subject, html, text } = generateCertificateEmailHtml({
@@ -566,7 +665,7 @@ export async function resendCertificateEmail(req: any, res: Response) {
         qrCodeDataURL: cert.qrCode,
         // Rebuild from the current app URL + real ID — stored URLs may point to
         // an old/dead deployment.
-        verificationUrl: `${appUrl}/certificate/${cert.certificateId}`,
+        verificationUrl: `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`,
       });
       cert.pdfBuffer = pdfBuffer;
       await cert.save();
@@ -580,7 +679,7 @@ export async function resendCertificateEmail(req: any, res: Response) {
       attachments: [
         {
           filename: `${cert.certificateId}.pdf`,
-          content: Buffer.from(pdfBuffer),
+          content: asPdfBuffer(pdfBuffer),
         },
       ],
     });
