@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { Response } from 'express';
 import { CertificateCampaign, EventModel, Attendance, Student, Certificate } from '../models';
-import { env } from '../config/env';
+import { env, getCertificateBaseUrl } from '../config/env';
 import { todayIST } from '../utils/dates';
 import { nextCertificateId } from '../utils/ids';
 import { generateQRCodeDataURL } from '../utils/qr';
@@ -111,7 +111,8 @@ async function buildCertificateDoc(campaign: any, student: any, eligibility: Eli
   if (!attended || !attended.qualifies) return null;
 
   const certificateId = await nextCertificateId();
-  const verificationUrl = `${env.appUrl}/certificate/${certificateId}`;
+  const certBaseUrl = getCertificateBaseUrl();
+  const verificationUrl = `${certBaseUrl}/certificate/${certificateId}`;
   const qrCode = await generateQRCodeDataURL(verificationUrl);
 
   const eventDate = eligibility.eligibleEvents[0]?.date || todayIST();
@@ -377,8 +378,8 @@ export async function generateSingleCertificate(req: any, res: Response) {
         // Always derive the verification link from the current app URL and the
         // real certificate ID — never trust a stored URL, which may point to an
         // old/dead deployment.
-        verificationUrl: `${env.appUrl}/certificate/${cert!.certificateId}`,
-        downloadUrl: `${env.appUrl}/api/certificates/${cert!.certificateId}/download`,
+        verificationUrl: `${getCertificateBaseUrl()}/certificate/${cert!.certificateId}`,
+        downloadUrl: `${getCertificateBaseUrl()}/api/certificates/${cert!.certificateId}/download`,
       }).catch(() => {});
     }
 

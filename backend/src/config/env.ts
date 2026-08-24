@@ -39,15 +39,41 @@ if (forceDns.length > 0) {
 }
 
 /**
+ * The ONE canonical production URL for the public-facing GDGoC GCEE site.
+ * Used as the final fallback when no environment variable overrides it.
+ * All certificate verification links, QR codes, and email buttons are built
+ * from this URL — it must always point to the official production deployment.
+ */
+const CANONICAL_PRODUCTION_URL = 'https://gdgoc-gcee.vercel.app';
+
+/**
  * Get the public canonical URL of the application.
+ *
+ * Priority (highest → lowest):
+ *   1. PUBLIC_APP_URL  — explicit override, takes precedence over everything
+ *   2. NEXT_PUBLIC_APP_URL / VITE_APP_URL — framework-specific explicit vars
+ *   3. APP_URL / CLIENT_URL — generic explicit vars
+ *   4. VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL — Vercel system-injected vars
+ *      (lowest explicit priority because Vercel injects the *internal* project
+ *       hostname, e.g. gdgoc-gcee-clubs.vercel.app, which may differ from the
+ *       real custom/production domain)
+ *   5. Hard-coded CANONICAL_PRODUCTION_URL when NODE_ENV=production or VERCEL=1
+ *
  * In production / Vercel, never returns localhost so emails always have valid links.
  */
 export function getPublicAppUrl(): string {
   const candidates = [
+    // Highest priority: explicit canonical override (set this in Vercel dashboard)
+    process.env.PUBLIC_APP_URL,
+    // Framework-specific explicit vars
     process.env.NEXT_PUBLIC_APP_URL,
     process.env.VITE_APP_URL,
+    // Generic explicit vars
     process.env.APP_URL,
     process.env.CLIENT_URL,
+    // Vercel system-injected vars — lowest explicit priority because
+    // VERCEL_PROJECT_PRODUCTION_URL reflects the Vercel *project name* hostname
+    // (e.g. gdgoc-gcee-clubs.vercel.app) rather than the custom/real domain.
     process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '',
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
   ];
@@ -60,12 +86,29 @@ export function getPublicAppUrl(): string {
 
   // When running in production or on Vercel, default to the official production URL
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return 'https://gdgoc-gcee.vercel.app';
+    return CANONICAL_PRODUCTION_URL;
   }
 
   // Local development fallback
   const devCandidate = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
   return devCandidate.trim().replace(/\/+$/, '');
+}
+
+/**
+ * The one true canonical URL for certificate links in emails.
+ * Reads PUBLIC_APP_URL first, then falls back to CANONICAL_PRODUCTION_URL.
+ * Use this (not getPublicAppUrl()) when building certificate verification
+ * and download URLs so they always resolve to the correct production domain.
+ */
+export function getCertificateBaseUrl(): string {
+  const explicit = process.env.PUBLIC_APP_URL || process.env.APP_URL || process.env.CLIENT_URL;
+  if (explicit && !explicit.includes('localhost') && !explicit.includes('127.0.0.1')) {
+    return explicit.trim().replace(/\/+$/, '');
+  }
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return CANONICAL_PRODUCTION_URL;
+  }
+  return process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
 }
 
 /**

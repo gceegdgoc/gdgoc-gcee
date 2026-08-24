@@ -12,7 +12,7 @@ import { safeString } from '../utils/safe';
 import { generateCertificatePDF } from '../utils/pdf';
 import { generateQRCodeDataURL } from '../utils/qr';
 import { nextCertificateId } from '../utils/ids';
-import { getPublicAppUrl } from '../config/env';
+import { getPublicAppUrl, getCertificateBaseUrl } from '../config/env';
 import { sendGmailEmail } from '../services/emailService';
 import { generateCertificateEmailHtml } from '../services/email/templates/certificate.template';
 import { connectDB } from '../config/db';
@@ -75,7 +75,7 @@ async function ensureFreshCertificateLinks(cert: any): Promise<void> {
   try {
     if (!isStaleVerificationUrl(cert.verificationUrl)) return;
 
-    const appUrl = getPublicAppUrl();
+    const appUrl = getCertificateBaseUrl();
     const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
     const qrCode = await generateQRCodeDataURL(verificationUrl);
     const pdfBuffer = await generateCertificatePDF({
@@ -477,7 +477,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     let cert: any = null;
     for (let attempt = 0; attempt < 5; attempt++) {
       const certificateId = await nextCertificateId();
-      const appUrl = getPublicAppUrl();
+      const appUrl = getCertificateBaseUrl();
       const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${certificateId}`;
       const qrCode = await generateQRCodeDataURL(verificationUrl);
 
@@ -527,7 +527,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     let emailError: string | undefined;
 
     if (sendEmail) {
-      const appUrl = getPublicAppUrl();
+      const appUrl = getCertificateBaseUrl();
       const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
       const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
 
@@ -642,7 +642,7 @@ export async function resendCertificateEmail(req: any, res: Response) {
     // Repair legacy records whose stored PDF attachment still embeds an old QR.
     await ensureFreshCertificateLinks(cert);
 
-    const appUrl = getPublicAppUrl();
+    const appUrl = getCertificateBaseUrl();
     const verificationUrl = `${appUrl}${CERTIFICATE_ROUTE}/${cert.certificateId}`;
     const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
 
