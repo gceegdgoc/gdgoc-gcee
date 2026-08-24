@@ -40,8 +40,6 @@ export interface GEvent {
   poster?: string;
   date: string;
   time?: string;
-  startTime: string;
-  endTime: string;
   venue: string;
   speaker: string;
   speakerBio: string;
@@ -50,7 +48,6 @@ export interface GEvent {
   registrationEnabled: boolean;
   isRegistrationOpen?: boolean;
   registrationDeadline: string;
-  capacity: number;
   googleFormUrl: string;
   registrationLink?: string;
   responseSheetId?: string;

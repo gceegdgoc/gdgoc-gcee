@@ -29,8 +29,6 @@ export interface IEvent extends Document {
   slug: string;
   date: any;
   time?: string;
-  startTime?: string;
-  endTime?: string;
   venue?: string;
   description?: string;
   shortDescription?: string;
@@ -77,8 +75,6 @@ const eventSchema = new Schema<IEvent>(
     slug: { type: String, index: { unique: true, sparse: true }, trim: true },
     date: { type: Date, required: [true, 'Date is required.'] },
     time: { type: String, default: '' },
-    startTime: { type: String, default: '' },
-    endTime: { type: String, default: '' },
     venue: { type: String, default: '' },
     description: { type: String, default: '' },
     shortDescription: { type: String, default: '' },

@@ -76,7 +76,7 @@ export default function MyEvents() {
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
                   <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4 text-g-blue" /> {formatHumanDate(ev.date)}</span>
-                  {ev.startTime && <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-g-yellow" /> {ev.startTime}</span>}
+                  {ev.time && <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-g-yellow" /> {ev.time}</span>}
                   <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-g-green" /> {ev.venue || 'TBA'}</span>
                 </div>
               </div>

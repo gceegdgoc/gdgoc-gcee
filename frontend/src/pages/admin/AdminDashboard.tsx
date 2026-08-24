@@ -50,7 +50,6 @@ interface EventRegistration {
   title: string;
   date: string;
   category: string;
-  capacity: number;
   registrationEnabled: boolean;
   responseSheetId: string;
   lastSyncedAt: string | null;
@@ -145,7 +144,6 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((ev) => {
-              const pct = ev.capacity > 0 ? Math.round((ev.registrationCount / ev.capacity) * 100) : 0;
               const effStatus = getEffectiveEventStatus(ev);
               const regOpen = isEventRegistrationOpen(ev);
               return (
@@ -177,19 +175,8 @@ export default function AdminDashboard() {
                   <div className="mt-3">
                     <div className="flex items-baseline justify-between text-sm">
                       <span className="text-ink-muted">Registered</span>
-                      <span className="font-bold text-navy-900">{ev.registrationCount}{ev.capacity > 0 ? ` / ${ev.capacity}` : ''}</span>
+                      <span className="font-bold text-navy-900">{ev.registrationCount}</span>
                     </div>
-                    {ev.capacity > 0 && (
-                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-navy-50">
-                        <div
-                          className={cn('h-full rounded-full transition-all', pct >= 90 ? 'bg-g-red' : pct >= 70 ? 'bg-g-yellow' : 'bg-g-green')}
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                        />
-                      </div>
-                    )}
-                    {ev.capacity > 0 && (
-                      <p className="mt-1 text-[10px] text-ink-faint">{pct}% filled</p>
-                    )}
                   </div>
                   <div className="mt-3 flex flex-col gap-1.5">
                     <Link

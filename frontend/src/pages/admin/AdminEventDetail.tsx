@@ -412,7 +412,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
             <div className="rounded-lg border border-navy-100 p-3 space-y-1">
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Event</span><span className="font-semibold text-navy-900">{event.title || 'Event Name'}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Date</span><span className="text-navy-900">{formatHumanDate(event.date) || 'TBA'}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-ink-muted">Time</span><span className="text-navy-900">{event.startTime || 'TBA'}{event.endTime ? ` – ${event.endTime}` : ''}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-ink-muted">Time</span><span className="text-navy-900">{event.time || 'TBA'}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Venue</span><span className="text-navy-900">{event.venue || 'TBA'}</span></div>
             </div>
             <div className="text-center">
@@ -535,17 +535,6 @@ function EventRegistrations({ eventId, event }: { eventId: string; event: GEvent
           <span className="font-mono text-sm font-bold">{count}</span>
           <span className="font-mono text-xs text-black/40">registered</span>
         </div>
-        {event.capacity > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-black/40">Capacity: {event.capacity}</span>
-            <div className="h-1.5 w-24 overflow-hidden rounded-full bg-black/5">
-              <div
-                className="h-full bg-black transition-all"
-                style={{ width: `${Math.min((count / event.capacity) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
         <div className="ml-auto flex flex-wrap gap-2">
           <button
             onClick={handleClearAllRegistrations}

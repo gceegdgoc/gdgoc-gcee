@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration, EVENT_CATEGORIES, EVENT_STATUSES } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { nextEventId } from '../utils/ids';
-import { todayIST, isDateBefore, formatTimeRange, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate } from '../utils/dates';
+import { todayIST, isDateBefore, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate } from '../utils/dates';
 import { safeString } from '../utils/safe';
 import { connectDB } from '../config/db';
 import { EMAIL_REGISTRATION_URL } from '../config/env';
@@ -44,9 +44,7 @@ export function serializeEvent(event: any) {
     banner: event.banner,
     poster: event.poster || event.banner || '',
     date: event.date,
-    time: event.time || formatTimeRange(event.startTime, event.endTime),
-    startTime: event.startTime,
-    endTime: event.endTime,
+    time: event.time || '',
     venue: event.venue,
     speaker: event.speaker,
     speakerBio: event.speakerBio,
@@ -91,7 +89,7 @@ export async function listEvents(req: AuthRequest, res: Response) {
     }
 
     const events = await EventModel.find(filter)
-      .sort({ date: 1, startTime: 1 })
+      .sort({ date: 1 })
       .limit(Number(limit) || 100)
       .lean();
 
@@ -632,11 +630,7 @@ export function normalizeEventPayload(body: any = {}) {
   const categoryRaw = asString(body.category || body.eventType || 'Other');
   const category = (EVENT_CATEGORIES as readonly string[]).includes(categoryRaw) ? categoryRaw : 'Other';
 
-  const startTime = asString(body.startTime);
-  const endTime = asString(body.endTime);
-  const time =
-    asString(body.time) ||
-    (startTime || endTime ? formatTimeRange(startTime, endTime) : '');
+  const time = asString(body.time);
 
   // Poster and banner are the same asset under two names; keep them mirrored.
   const image = asString(body.poster || body.banner);
@@ -655,8 +649,6 @@ export function normalizeEventPayload(body: any = {}) {
     slug: asString(body.slug) || generateSlugFromTitle(asString(body.title)),
     date: body.date,
     time,
-    startTime,
-    endTime,
     venue: asString(body.venue),
     description: asString(body.description),
     shortDescription: asString(body.shortDescription),

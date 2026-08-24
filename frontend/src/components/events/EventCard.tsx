@@ -52,8 +52,8 @@ export function EventCard({
 
   const formatEventDateTime = () => {
     const d = formatHumanDate(event.date);
-    if (event.startTime) {
-      return `${d} • ${event.startTime}`;
+    if (event.time) {
+      return `${d} • ${event.time.split(' - ')[0] || event.time}`;
     }
     return d;
   };
@@ -128,7 +128,6 @@ export function EventCard({
             <Users className="h-4 w-4 text-slate-400" />
             <span className="text-xs font-semibold text-slate-700">
               <span className="font-bold text-navy-900">{event.registeredCount}</span>
-              {event.capacity > 0 && <span className="text-slate-400">/{event.capacity}</span>}
               <span className="ml-1 text-[11px] font-normal text-slate-400">registered</span>
             </span>
             <span className="relative flex h-2 w-2">

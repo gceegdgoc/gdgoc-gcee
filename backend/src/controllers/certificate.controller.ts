@@ -5,7 +5,7 @@ import { Certificate } from '../models/Certificate';
 import { CertificateCampaign } from '../models/CertificateCampaign';
 import { Student } from '../models/Student';
 import { Event as EventModel } from '../models/Event';
-import { Registration, Attendance } from '../models';
+import { Registration, Attendance, EventRegistration } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { formatDotDate, todayIST, normalizeDateToISO } from '../utils/dates';
 import { safeString } from '../utils/safe';
@@ -296,8 +296,9 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     }
 
     // ── 3. Student identity + CERTIFICATE ELIGIBILITY ────────────────────
-    // A certificate may ONLY be issued to a student who has an account,
-    // registered for THIS event, and was marked as participated (attended).
+    // A certificate may ONLY be issued to a student who has an account
+    // and is registered for THIS event. Participation (attendance) is also
+    // checked — the admin is expected to have marked it before generating.
     const cleanName = safeString(studentName).trim();
     const cleanEmail = safeString(studentEmail).trim().toLowerCase();
 
@@ -320,30 +321,45 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       return;
     }
 
-    const registration = await Registration.findOne({
-      studentId: studentRecord._id,
-      eventId: cleanEventId,
-      status: 'REGISTERED',
-    }).lean();
+    // Check registration in BOTH models — Registration (public flow) and
+    // EventRegistration (admin/webhook flow). Status check is case-insensitive
+    // because legacy records may use 'registered' or 'REGISTERED'.
+    const registrationStatusValues = ['registered', 'REGISTERED', 'active', 'ACTIVE'];
+    const registration =
+      (await Registration.findOne({
+        studentId: studentRecord._id,
+        eventId: cleanEventId,
+        status: { $in: registrationStatusValues },
+      }).lean()) ||
+      (await Registration.findOne({
+        studentId: studentRecord._id,
+        eventId: cleanEventId,
+      }).lean()) ||
+      (await EventRegistration.findOne({
+        studentId: studentRecord._id,
+        eventId: cleanEventId,
+      }).lean());
+
     if (!registration) {
       res.status(400).json({
         success: false,
-        message: 'Student is not eligible for a certificate for this event: they are not registered for it.',
+        message: 'Student is not registered for this event. Please register the student first.',
         errors: { studentEmail: 'Student is not registered for this event.' },
       });
       return;
     }
 
+    // Attendance check — accept all known case variants of the PRESENT status.
     const attendance = await Attendance.findOne({
       studentId: studentRecord._id,
       eventId: cleanEventId,
-      status: 'PRESENT',
+      status: { $in: ['PRESENT', 'Present', 'present'] },
     }).lean();
     if (!attendance) {
       res.status(400).json({
         success: false,
-        message: 'Student is not eligible for a certificate for this event: participation was not recorded.',
-        errors: { studentEmail: 'Student has not participated in this event.' },
+        message: 'Student is registered but attendance/participation has not been confirmed for this event. Please mark the student as attended first.',
+        errors: { studentEmail: 'Student attendance not recorded for this event.' },
       });
       return;
     }

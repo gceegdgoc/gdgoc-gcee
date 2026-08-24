@@ -13,8 +13,6 @@ interface EventFormData {
   description: string;
   date: string;
   time: string;
-  startTime: string;
-  endTime: string;
   venue: string;
   speaker: string;
   speakerBio: string;
@@ -22,8 +20,6 @@ interface EventFormData {
   technologies: string;
   registrationEnabled: boolean;
   registrationDeadline: string;
-  /** Kept as a raw input string; converted to a number in the payload. */
-  capacity: string;
   registrationLink: string;
   isCertificateEligible: boolean;
   isInauguration: boolean;
@@ -38,8 +34,6 @@ function toForm(event?: GEvent & any): EventFormData {
     description: event?.description || '',
     date: event?.date || '',
     time: event?.time || '',
-    startTime: event?.startTime || '',
-    endTime: event?.endTime || '',
     venue: event?.venue || '',
     speaker: event?.speaker || '',
     speakerBio: event?.speakerBio || '',
@@ -47,7 +41,6 @@ function toForm(event?: GEvent & any): EventFormData {
     technologies: (event?.technologies || []).join(', '),
     registrationEnabled: event?.registrationEnabled ?? true,
     registrationDeadline: event?.registrationDeadline || '',
-    capacity: event?.capacity ? String(event.capacity) : '',
     registrationLink: event?.registrationLink || '',
     isCertificateEligible: event?.isCertificateEligible ?? false,
     isInauguration: event?.isInauguration ?? false,
@@ -84,8 +77,8 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.date || !form.time || !form.eventType || !form.poster) {
-      toast.error('Please fill all required fields (title, date, time, type, poster).');
+    if (!form.title || !form.date || !form.eventType || !form.poster) {
+      toast.error('Please fill all required fields (title, date, type, poster).');
       return;
     }
     setBusy(true);
@@ -96,8 +89,6 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       description: form.description,
       date: form.date,
       time: form.time,
-      startTime: form.startTime,
-      endTime: form.endTime,
       venue: form.venue,
       speaker: form.speaker,
       speakerBio: form.speakerBio,
@@ -108,7 +99,6 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
         .filter(Boolean),
       registrationEnabled: form.registrationEnabled,
       registrationDeadline: form.registrationDeadline,
-      capacity: form.capacity ? Number(form.capacity) : 0,
       registrationLink: form.registrationLink,
       isCertificateEligible: form.isInauguration ? false : form.isCertificateEligible,
       isInauguration: form.isInauguration,
@@ -174,16 +164,8 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
             <input id="ev-venue" className="input" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="CS Seminar Hall" />
           </div>
           <div>
-            <label className="label" htmlFor="ev-time">Time (Text) <span className="text-g-red">*</span></label>
-            <input id="ev-time" className="input" value={form.time} onChange={(e) => update('time', e.target.value)} placeholder="e.g. 09:00 AM - 04:00 PM" />
-          </div>
-          <div>
-            <label className="label" htmlFor="ev-start-time">Start Time</label>
-            <input id="ev-start-time" className="input font-mono" value={form.startTime} onChange={(e) => update('startTime', e.target.value)} placeholder="09:00" />
-          </div>
-          <div>
-            <label className="label" htmlFor="ev-end-time">End Time</label>
-            <input id="ev-end-time" className="input font-mono" value={form.endTime} onChange={(e) => update('endTime', e.target.value)} placeholder="17:00" />
+            <label className="label" htmlFor="ev-time">Time</label>
+            <input id="ev-time" className="input" value={form.time} onChange={(e) => update('time', e.target.value)} placeholder="e.g. 09:00 AM - 05:00 PM" />
           </div>
           <div>
             <label className="label" htmlFor="ev-cat">Event Type <span className="text-g-red">*</span></label>
@@ -198,7 +180,7 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       </div>
 
       <div className="card p-6">
-        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Speaker & topics</h3>
+        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Speaker &amp; topics</h3>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="ev-speaker">Speaker</label>
@@ -216,12 +198,8 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       </div>
 
       <div className="card p-6">
-        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Registration & flags</h3>
+        <h3 className="mb-5 font-display text-base font-bold text-navy-900">Registration &amp; flags</h3>
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="ev-capacity">Registration limit (0 = unlimited)</label>
-            <input id="ev-capacity" type="number" min={0} className="input" value={form.capacity} onChange={(e) => update('capacity', e.target.value)} placeholder="120" />
-          </div>
           <div>
             <label className="label" htmlFor="ev-deadline">Registration deadline (YYYY-MM-DD)</label>
             <input id="ev-deadline" className="input font-mono" value={form.registrationDeadline} onChange={(e) => update('registrationDeadline', e.target.value)} placeholder="2026-09-18" />
