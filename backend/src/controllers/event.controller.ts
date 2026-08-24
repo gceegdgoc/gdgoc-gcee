@@ -988,7 +988,7 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
           // Mongoose returns `date` as a Date object — render a human label,
           // never pass the raw object into string-template code.
           date: formatFullDate(event.date),
-          time: formatTimeRange(event.startTime, event.endTime),
+          time: event.time || 'TBA',
           venue: safeString(event.venue) || 'Government College of Engineering, Erode',
           poster: safeString(event.banner),
           registrationLink: regUrl,
