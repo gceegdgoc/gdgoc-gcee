@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { EventModel, Registration, GoogleFormRegistration, Student, SendingHistory, EventRegistration, EVENT_CATEGORIES, EVENT_STATUSES } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { nextEventId } from '../utils/ids';
-import { todayIST, isDateBefore, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate } from '../utils/dates';
+import { todayIST, isDateBefore, isEventRegistrationOpen, getEffectiveEventStatus, formatFullDate, formatTimeRange } from '../utils/dates';
 import { safeString } from '../utils/safe';
 import { connectDB } from '../config/db';
 import { EMAIL_REGISTRATION_URL } from '../config/env';
@@ -988,7 +988,7 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
           // Mongoose returns `date` as a Date object — render a human label,
           // never pass the raw object into string-template code.
           date: formatFullDate(event.date),
-          time: event.time || 'TBA',
+          time: formatTimeRange(event.startTime || event.time, event.endTime),
           venue: safeString(event.venue) || 'Government College of Engineering, Erode',
           poster: safeString(event.banner),
           registrationLink: regUrl,

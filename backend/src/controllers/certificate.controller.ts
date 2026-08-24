@@ -93,7 +93,9 @@ export async function downloadCertificate(req: any, res: Response) {
       eventDate: cert.eventDate || '',
       issueDate: cert.issueDate,
       qrCodeDataURL: cert.qrCode,
-      verificationUrl: cert.verificationUrl,
+      // Rebuild from the current app URL + real ID — stored URLs may point to
+      // an old/dead deployment.
+      verificationUrl: `${getPublicAppUrl()}/certificate/${cert.certificateId}`,
     });
 
     res.setHeader('Content-Type', PDF_MIME);
@@ -562,7 +564,9 @@ export async function resendCertificateEmail(req: any, res: Response) {
         eventDate: cert.eventDate || '',
         issueDate: cert.issueDate,
         qrCodeDataURL: cert.qrCode,
-        verificationUrl: cert.verificationUrl,
+        // Rebuild from the current app URL + real ID — stored URLs may point to
+        // an old/dead deployment.
+        verificationUrl: `${appUrl}/certificate/${cert.certificateId}`,
       });
       cert.pdfBuffer = pdfBuffer;
       await cert.save();

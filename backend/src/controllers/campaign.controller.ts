@@ -374,7 +374,10 @@ export async function generateSingleCertificate(req: any, res: Response) {
         to: student.email,
         studentName: student.name,
         certificateId: cert!.certificateId,
-        verificationUrl: cert!.verificationUrl,
+        // Always derive the verification link from the current app URL and the
+        // real certificate ID — never trust a stored URL, which may point to an
+        // old/dead deployment.
+        verificationUrl: `${env.appUrl}/certificate/${cert!.certificateId}`,
         downloadUrl: `${env.appUrl}/api/certificates/${cert!.certificateId}/download`,
       }).catch(() => {});
     }
