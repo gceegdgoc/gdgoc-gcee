@@ -27,6 +27,7 @@ export interface ICertificate extends Document {
   certificateUrl?: string;
   issuedAt?: Date;
   verificationStatus?: string;
+  sentAt?: Date;
 }
 
 // NOTE: every field here is written by at least one controller
@@ -62,6 +63,7 @@ const certificateSchema = new Schema<ICertificate>({
   certificateUrl: { type: String },
   issuedAt: { type: Date, default: Date.now },
   verificationStatus: { type: String },
+  sentAt: { type: Date },
 }, { timestamps: true });
 
 export const Certificate = mongoose.model<ICertificate>('Certificate', certificateSchema);
