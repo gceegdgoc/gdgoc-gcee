@@ -159,276 +159,357 @@ export default function AdminEventDetail() {
 /* ─── Email Tab ─────────────────────────────────────────────────────── */
 
 function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => void }) {
+  const [recipientType, setRecipientType] = useState<'ALL_STUDENTS' | 'REGISTERED_STUDENTS' | 'SELECTED_STUDENTS'>('ALL_STUDENTS');
+  const [customSubject, setCustomSubject] = useState(`Official Invitation: ${event.title} – GDGoC GCEE`);
+  const [customMessage, setCustomMessage] = useState('');
+  const [posterUrl, setPosterUrl] = useState(event.banner || (event as any).posterUrl || (event as any).poster || '');
+  const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
+  const [loadingCount, setLoadingCount] = useState(false);
+
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<SendEventToAllResponse | null>(null);
-  const [confirmResend, setConfirmResend] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [sendingResult, setSendingResult] = useState<any | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
-  const stopPolling = () => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  };
-
-  const handleSend = async (force = false) => {
-    setSending(true);
-    setResult(null);
-    setProgress(null);
-    let baseDone = 0;
-    let total = 0;
-
-    // Baseline + eligible-recipient count so we can show "sent / total" while
-    // the batch runs. `verified-count` mirrors the backend recipient filter
-    // (verified students with a valid email) — never hard-coded.
-    try {
-      const [baseRes, countRes] = await Promise.all([
-        api.get<SendingHistoryResponse>(`/admin/events/${event.eventId}/sending-history`, { params: { eventType: 'event-invite', limit: 1 } }),
-        api.get<VerifiedStudentCountResponse>(`/admin/events/${event.eventId}/verified-count`),
-      ]);
-      baseDone = (baseRes.data.stats?.sent || 0) + (baseRes.data.stats?.failed || 0);
-      total = countRes.data.count || 0;
-      setProgress({ done: 0, total });
-
-      pollRef.current = setInterval(async () => {
-        try {
-          const cur = await api.get<SendingHistoryResponse>(`/admin/events/${event.eventId}/sending-history`, {
-            params: { eventType: 'event-invite', limit: 1 },
-          });
-          const done = (cur.data.stats?.sent || 0) + (cur.data.stats?.failed || 0) - baseDone;
-          setProgress((prev) => ({ done: Math.max(done, 0), total: prev?.total ?? total }));
-        } catch {
-          /* ignore transient polling errors */
-        }
-      }, 1500);
-    } catch (err) {
-      console.warn('[sendEvent] progress polling setup failed', err);
-      setProgress({ done: 0, total: 0 });
-    }
-
-    try {
-      const res = await api.post<SendEventToAllResponse>(`/admin/events/${event.eventId}/send-to-all`, force ? { force: true } : {});
-      stopPolling();
-      setResult(res.data);
-      if (res.data.alreadySent && !force) {
-        setProgress(null);
-        return;
-      }
-      // Final state uses the server-reported real counts.
-      const finalTotal = res.data.totalRecipients ?? res.data.recipientCount ?? total;
-      setProgress({
-        done: (res.data.sentCount || 0) + (res.data.failedCount || 0),
-        total: finalTotal,
+  // Fetch estimated recipient count on recipientType change
+  useEffect(() => {
+    let mounted = true;
+    setLoadingCount(true);
+    api
+      .get(`/admin/events/${event.eventId}/poster-recipient-count`, { params: { recipientType } })
+      .then((res) => {
+        if (mounted) setEstimatedCount(res.data.recipientCount);
+      })
+      .catch(() => {
+        if (mounted) setEstimatedCount(null);
+      })
+      .finally(() => {
+        if (mounted) setLoadingCount(false);
       });
-      toast.success(`Event email sent to ${res.data.sentCount} of ${finalTotal} student(s)!`);
-      if (res.data.failedCount && res.data.failedCount > 0) {
-        toast(`${res.data.failedCount} email(s) failed.`, {
-          icon: '⚠️',
-          style: { background: '#0b1b33', color: '#fde047' },
-        });
-      }
+    return () => {
+      mounted = false;
+    };
+  }, [event.eventId, recipientType]);
+
+  // Fetch email audit history
+  const loadHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await api.get(`/admin/events/${event.eventId}/poster-email-history`);
+      setHistory(res.data.history || []);
+    } catch {
+      // non-critical error
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [event.eventId]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleSendPoster = async () => {
+    if (!window.confirm(`Are you sure you want to send this poster email to ${estimatedCount ?? 'the selected'} recipient(s)?`)) return;
+
+    setSending(true);
+    setSendingResult(null);
+    try {
+      const res = await api.post(`/admin/events/${event.eventId}/send-poster`, {
+        recipientType,
+        customSubject,
+        customMessage,
+        posterUrl,
+      });
+      setSendingResult(res.data);
+      toast.success(res.data.message || 'Poster email dispatch completed!');
       onSent();
+      loadHistory();
     } catch (err) {
-      stopPolling();
-      setProgress(null);
       toast.error(getErrorMessage(err));
     } finally {
       setSending(false);
     }
   };
 
+  const handleRetryFailed = async (batchId: string) => {
+    setRetrying(batchId);
+    try {
+      const res = await api.post(`/admin/events/${event.eventId}/retry-poster-email`, { batchId });
+      toast.success(res.data.message || 'Retry completed!');
+      loadHistory();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setRetrying(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Email Status Card */}
+      {/* Email Configuration Card */}
       <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="font-display text-lg font-bold text-navy-900 flex items-center gap-2">
-              <Mail className="h-5 w-5 text-g-blue" /> Send Event to All Students
+              <Mail className="h-5 w-5 text-g-blue" /> Event Poster Email Campaign
             </h3>
             <p className="mt-1 text-sm text-ink-muted">
-              Send this event announcement to all verified students in the GDGoC GCEE community.
+              Distribute event invitation poster emails with responsive branding and direct registration CTA.
             </p>
           </div>
           {event.emailSent && (
             <span className="chip bg-g-green/10 text-green-700 flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Already Sent
+              <CheckCircle2 className="h-3.5 w-3.5" /> Announcement Sent
             </span>
           )}
         </div>
 
-        {event.emailSent && (
-          <div className="mt-4 rounded-xl border border-g-green/20 bg-g-green/5 p-4">
-            <div className="flex items-center gap-3 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="font-semibold text-green-800">
-                  Email sent to {event.emailSentCount} student(s)
-                  {event.emailFailedCount ? `, ${event.emailFailedCount} failed` : ''}
-                </p>
-                <p className="text-xs text-green-600">
-                  Sent on {event.emailSentAt ? new Date(event.emailSentAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'unknown date'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-5 rounded-xl border border-navy-100 bg-navy-50/50 p-4">
-          <p className="text-xs font-semibold text-navy-700 mb-2">Email will contain:</p>
-          <ul className="space-y-1 text-xs text-navy-600">
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> GDGoC GCEE branding</li>
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> Event name, description, date, time, venue</li>
-            {event.banner && <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> Event poster image</li>}
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-g-green" /> "Register Now" button → https://gdgoc-gcee.vercel.app/events/EV-2026-0001</li>
-          </ul>
-        </div>
-
-        {event.emailSent && !confirmResend ? (
-          <div className="mt-5 flex gap-3">
-            <button
-              onClick={() => setConfirmResend(true)}
-              className="flex items-center gap-2 border border-g-yellow/50 bg-g-yellow/10 px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-yellow-800 transition hover:bg-g-yellow/20"
-            >
-              <RefreshCw className="h-4 w-4" /> Send Again
-            </button>
-          </div>
-        ) : event.emailSent && confirmResend ? (
-          <div className="mt-5 rounded-xl border border-g-yellow/30 bg-g-yellow/5 p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-600" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-800">Send event email again?</p>
-                <p className="mt-1 text-xs text-yellow-700">
-                  This will send the event email to all verified students again. Students may receive duplicate emails.
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    onClick={() => { handleSend(true); setConfirmResend(false); }}
-                    disabled={sending}
-                    className="flex items-center gap-1.5 border border-yellow-700 bg-yellow-700 px-4 py-1.5 font-mono text-[11px] font-bold uppercase text-white transition hover:bg-yellow-800 disabled:opacity-50"
-                  >
-                    {sending ? <ButtonSpinner /> : <Send className="h-3 w-3" />}
-                    {sending ? 'Sending…' : 'Yes, send again'}
-                  </button>
-                  <button
-                    onClick={() => setConfirmResend(false)}
-                    className="font-mono text-[11px] text-yellow-700 hover:text-yellow-900"
-                  >
-                    Cancel
-                  </button>
+        <div className="mt-6 space-y-5">
+          {/* Recipient Filter Selection */}
+          <div>
+            <label className="label">Target Audience / Recipients</label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className={cn(
+                'flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition',
+                recipientType === 'ALL_STUDENTS' ? 'border-g-blue bg-g-blue/5' : 'border-navy-100 hover:bg-navy-50/50'
+              )}>
+                <input
+                  type="radio"
+                  name="recipientType"
+                  value="ALL_STUDENTS"
+                  checked={recipientType === 'ALL_STUDENTS'}
+                  onChange={() => setRecipientType('ALL_STUDENTS')}
+                  className="h-4 w-4 accent-[#2563eb]"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-navy-900">All Verified Students</p>
+                  <p className="text-xs text-ink-muted">Broadcast to all registered GDGoC GCEE members.</p>
                 </div>
-              </div>
+              </label>
+
+              <label className={cn(
+                'flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition',
+                recipientType === 'REGISTERED_STUDENTS' ? 'border-g-blue bg-g-blue/5' : 'border-navy-100 hover:bg-navy-50/50'
+              )}>
+                <input
+                  type="radio"
+                  name="recipientType"
+                  value="REGISTERED_STUDENTS"
+                  checked={recipientType === 'REGISTERED_STUDENTS'}
+                  onChange={() => setRecipientType('REGISTERED_STUDENTS')}
+                  className="h-4 w-4 accent-[#2563eb]"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-navy-900">Registered Students</p>
+                  <p className="text-xs text-ink-muted">Target students who signed up for this specific event.</p>
+                </div>
+              </label>
             </div>
           </div>
-        ) : (
-          <div className="mt-5 flex gap-3">
+
+          {/* Recipient Estimate Badge */}
+          <div className="flex items-center gap-2 rounded-xl border border-navy-100 bg-navy-50/50 px-4 py-3 text-xs text-navy-800">
+            <Users className="h-4 w-4 text-g-blue" />
+            <span>Estimated Audience Size: </span>
+            {loadingCount ? (
+              <span className="font-mono font-bold text-ink-muted animate-pulse">Calculating…</span>
+            ) : (
+              <span className="font-mono font-bold text-g-blue">{estimatedCount ?? 0} recipient(s)</span>
+            )}
+          </div>
+
+          {/* Custom Subject */}
+          <div>
+            <label className="label">Email Subject</label>
+            <input
+              className="input font-medium"
+              value={customSubject}
+              onChange={(e) => setCustomSubject(e.target.value)}
+              placeholder="e.g. Official Invitation: Web Dev Workshop – GDGoC GCEE"
+            />
+          </div>
+
+          {/* Poster Image URL */}
+          <div>
+            <label className="label">Poster Image URL</label>
+            <input
+              className="input font-mono text-xs"
+              value={posterUrl}
+              onChange={(e) => setPosterUrl(e.target.value)}
+              placeholder="https://images.unsplash.com/..."
+            />
+            <p className="mt-1 text-xs text-ink-faint">Defaults to the event poster uploaded in the event details.</p>
+          </div>
+
+          {/* Custom Announcement Message */}
+          <div>
+            <label className="label">Custom Announcement Note / Highlights (Optional)</label>
+            <textarea
+              rows={3}
+              className="input resize-y"
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+              placeholder="Add special instructions, prerequisites, or highlight key guest speakers…"
+            />
+          </div>
+
+          {/* Send Button */}
+          <div className="pt-2">
             <button
-              onClick={() => handleSend(false)}
-              disabled={sending}
-              className="flex items-center gap-2 border border-black bg-black px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white hover:text-black disabled:opacity-50"
+              onClick={handleSendPoster}
+              disabled={sending || (estimatedCount !== null && estimatedCount === 0)}
+              className="flex items-center gap-2 border border-black bg-black px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white hover:text-black disabled:opacity-50"
             >
               {sending ? <ButtonSpinner /> : <Send className="h-4 w-4" />}
-              {sending ? 'Sending…' : 'Send Event to All Students'}
+              {sending ? 'Dispatching Poster Emails…' : `Send Poster Email to ${estimatedCount ?? 0} Student(s)`}
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sending Result Card */}
+      {sendingResult && (
+        <div className="card p-6">
+          <h3 className="font-display text-base font-bold text-navy-900 mb-4">Dispatch Summary</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="rounded-xl border border-navy-100 bg-white p-4 text-center">
+              <p className="font-mono text-2xl font-bold text-navy-900">{sendingResult.totalRecipients || 0}</p>
+              <p className="text-xs text-ink-muted">Total Audience</p>
+            </div>
+            <div className="rounded-xl border border-g-green/20 bg-g-green/5 p-4 text-center">
+              <p className="font-mono text-2xl font-bold text-green-700">{sendingResult.successCount || 0}</p>
+              <p className="text-xs text-green-600">Successfully Delivered</p>
+            </div>
+            <div className="rounded-xl border border-g-red/20 bg-g-red/5 p-4 text-center">
+              <p className="font-mono text-2xl font-bold text-red-600">{sendingResult.failedCount || 0}</p>
+              <p className="text-xs text-red-500">Failed</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Audit & Dispatch History */}
+      <div className="card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-base font-bold text-navy-900">Email Delivery History &amp; Audit Log</h3>
+          <button onClick={loadHistory} className="flex items-center gap-1 font-mono text-xs text-black/50 hover:text-black">
+            <RefreshCw className={cn('h-3.5 w-3.5', loadingHistory && 'animate-spin')} /> Refresh
+          </button>
+        </div>
+
+        {history.length === 0 ? (
+          <p className="text-xs text-ink-muted italic">No poster email campaigns sent yet for this event.</p>
+        ) : (
+          <div className="space-y-4">
+            {history.map((batch) => (
+              <div key={batch.batchId} className="rounded-xl border border-navy-100 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy-50 pb-3">
+                  <div>
+                    <span className="font-mono text-xs font-bold text-navy-900">{batch.batchId}</span>
+                    <p className="text-xs text-ink-muted">{batch.subject}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-green-700 font-bold">{batch.successCount} sent</span>
+                    {batch.failedCount > 0 && (
+                      <span className="font-mono text-xs text-red-600 font-bold">{batch.failedCount} failed</span>
+                    )}
+                    {batch.failedCount > 0 && (
+                      <button
+                        onClick={() => handleRetryFailed(batch.batchId)}
+                        disabled={retrying === batch.batchId}
+                        className="flex items-center gap-1 rounded bg-red-600 px-3 py-1 font-mono text-[11px] font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {retrying === batch.batchId ? <ButtonSpinner /> : <RefreshCw className="h-3 w-3" />}
+                        Retry Failed
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {batch.recipients && batch.recipients.length > 0 && (
+                  <div className="mt-3 max-h-40 overflow-y-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="text-ink-muted border-b border-navy-50">
+                          <th className="py-1">Recipient</th>
+                          <th className="py-1">Email</th>
+                          <th className="py-1">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-navy-50">
+                        {batch.recipients.map((r: any, idx: number) => (
+                          <tr key={idx}>
+                            <td className="py-1 font-medium text-navy-900">{r.name}</td>
+                            <td className="py-1 font-mono text-ink-muted">{r.email}</td>
+                            <td className="py-1">
+                              {r.status === 'sent' ? (
+                                <span className="text-green-600 font-semibold">Sent</span>
+                              ) : (
+                                <span className="text-red-500 font-semibold" title={r.errorMessage}>
+                                  Failed: {r.errorMessage || 'Unknown error'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Sending Progress */}
-      {progress && (
-        <div className="card p-6">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-g-blue" />
-            <div>
-              <p className="font-display text-sm font-bold text-navy-900">
-                {progress.total > 0 && progress.done >= progress.total ? 'All emails processed!' : 'Sending event email…'}
-              </p>
-              <p className="text-xs text-ink-muted">
-                {progress.done} / {progress.total > 0 ? progress.total : '…'} emails sent
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-navy-100">
-            <div
-              className="h-full rounded-full bg-g-blue transition-all duration-500"
-              style={{ width: progress.total ? `${Math.min((progress.done / progress.total) * 100, 100)}%` : '5%' }}
-            />
-          </div>
-          <p className="mt-2 text-[11px] text-ink-faint">
-            Sending individually to each verified student. Please keep this tab open.
-          </p>
-        </div>
-      )}
-
-      {/* Sending Result */}
-      {result && !result.alreadySent && (
-        <div className="card p-6">
-          <h3 className="font-display text-base font-bold text-navy-900 mb-4">Sending Result</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-xl border border-navy-100 bg-white p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-navy-900">
-                {result.totalRecipients ?? result.recipientCount ?? 0}
-              </p>
-              <p className="text-xs text-ink-muted">Total Recipients</p>
-            </div>
-            <div className="rounded-xl border border-g-green/20 bg-g-green/5 p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-green-700">{result.sentCount || 0}</p>
-              <p className="text-xs text-green-600">Successfully Sent</p>
-            </div>
-            <div className="rounded-xl border border-g-red/20 bg-g-red/5 p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-red-600">{result.failedCount || 0}</p>
-              <p className="text-xs text-red-500">Failed</p>
-            </div>
-          </div>
-          {result.failedEmails && result.failedEmails.length > 0 && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-xs font-semibold text-red-700 mb-2">Failed emails (admin only):</p>
-              <p className="text-[11px] text-red-600 break-all">{result.failedEmails.join(', ')}</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Preview */}
+      {/* Live Poster Email Preview */}
       <div className="card p-6">
-        <h3 className="font-display text-base font-bold text-navy-900 mb-4">Email Preview</h3>
+        <h3 className="font-display text-base font-bold text-navy-900 mb-4">Responsive Email Live Preview</h3>
         <div className="rounded-xl border border-navy-100 bg-white p-6">
           <div className="mx-auto max-w-md space-y-4">
             <div className="rounded-lg bg-navy-950 p-4 text-white">
               <h4 className="font-bold">GDGoC GCEE</h4>
-              <p className="text-[10px] uppercase tracking-wider text-white/60">Google Developer Groups on Campus</p>
+              <p className="text-[10px] uppercase tracking-wider text-white/60">Government College of Engineering, Erode</p>
             </div>
+
             <div>
-              <p className="text-sm font-semibold text-navy-900">You're Invited!</p>
-              <p className="text-sm text-ink-muted">We are excited to announce an upcoming event.</p>
+              <p className="text-sm font-semibold text-navy-900">Dear Student,</p>
+              <p className="text-xs text-ink-muted mt-1">We are excited to invite you to {event.title}!</p>
             </div>
-            {event.banner && (
-              <div className="overflow-hidden rounded-lg">
-                <img src={event.banner} alt={event.title} className="w-full h-32 object-cover" />
+
+            {posterUrl ? (
+              <div className="overflow-hidden rounded-xl border border-navy-100">
+                <img src={posterUrl} alt={event.title} className="w-full max-h-60 object-cover" />
+              </div>
+            ) : null}
+
+            {customMessage && (
+              <div className="rounded-lg border-l-4 border-g-blue bg-blue-50/50 p-3 text-xs text-blue-900">
+                {customMessage}
               </div>
             )}
+
             <div className="rounded-lg border border-navy-100 p-3 space-y-1">
-              <div className="flex justify-between text-xs"><span className="text-ink-muted">Event</span><span className="font-semibold text-navy-900">{event.title || 'Event Name'}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-ink-muted">Event</span><span className="font-semibold text-navy-900">{event.title}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Date</span><span className="text-navy-900">{formatHumanDate(event.date) || 'TBA'}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Time</span><span className="text-navy-900">{event.time || 'TBA'}</span></div>
               <div className="flex justify-between text-xs"><span className="text-ink-muted">Venue</span><span className="text-navy-900">{event.venue || 'TBA'}</span></div>
             </div>
-            <div className="text-center">
+
+            <div className="text-center pt-2">
               <a
-                href="https://gdgoc-gcee.vercel.app/events/EV-2026-0001"
+                href={`https://gdgoc-gcee.vercel.app/events/${event.eventId}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block rounded-lg bg-g-blue px-6 py-2 text-xs font-bold text-white"
+                className="inline-block rounded-lg bg-g-blue px-6 py-2.5 text-xs font-bold uppercase text-white shadow-md"
               >
                 REGISTER NOW
               </a>
             </div>
-            <p className="text-center text-[10px] leading-relaxed text-ink-muted">
-              GDGoC GCEE Team · Government College of Engineering, Erode
-              <br />
-              <a href={`mailto:${SITE_EMAIL}`} className="hover:text-navy-800">{SITE_EMAIL}</a>
+
+            <p className="text-center text-[10px] leading-relaxed text-ink-muted pt-2 border-t border-navy-50">
+              GDGoC GCEE Executive Committee · Government College of Engineering, Erode
             </p>
           </div>
         </div>

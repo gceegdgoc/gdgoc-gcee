@@ -94,6 +94,12 @@ import {
   getEventSendingHistory,
 } from '../controllers/eventDistribution.controller';
 import {
+  getPosterRecipientCount,
+  sendEventPosterEmail,
+  getPosterEmailHistory,
+  retryFailedPosterEmails,
+} from '../controllers/posterEmail.controller';
+import {
   deleteEventRegistration,
   clearEventRegistrations,
 } from '../controllers/registration.controller';
@@ -124,6 +130,12 @@ const sendEventEmailLimiter = rateLimit({
 router.post('/events/:eventId/send-to-all', sendEventEmailLimiter, sendEventToAllStudents);
 router.post('/events/:eventId/send-registration-email', sendEventEmailLimiter, sendEventToAllStudents);
 router.get('/events/:eventId/verified-count', getVerifiedStudentCount);
+
+// Poster Email routes
+router.get('/events/:eventId/poster-recipient-count', getPosterRecipientCount);
+router.post('/events/:eventId/send-poster', sendEventEmailLimiter, sendEventPosterEmail);
+router.get('/events/:eventId/poster-email-history', getPosterEmailHistory);
+router.post('/events/:eventId/retry-poster-email', retryFailedPosterEmails);
 
 // Event registrations (Google Form webhook submissions per event)
 router.get('/registration-stats', getRegistrationStats);

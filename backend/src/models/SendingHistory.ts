@@ -29,6 +29,7 @@ export interface ISendingHistory extends Document {
   sentAt: Date;
   status: string;
   recordType?: SendingHistoryRecordType;
+  batchId?: string;
   eventType?: string;
   eventName?: string;
   subject?: string;
@@ -40,6 +41,7 @@ export interface ISendingHistory extends Document {
   recipientCount: number;
   /** Batch-only counters. */
   sentCount?: number;
+  successCount?: number;
   failedCount?: number;
   startedAt?: Date;
   completedAt?: Date;
@@ -54,6 +56,7 @@ const sendingHistorySchema = new Schema<ISendingHistory>({
     enum: ['batch', 'recipient'],
     default: 'recipient',
   },
+  batchId: { type: String, index: true },
   eventType: { type: String },
   eventName: { type: String },
   subject: { type: String },
@@ -67,6 +70,7 @@ const sendingHistorySchema = new Schema<ISendingHistory>({
     min: 0,
   },
   sentCount: { type: Number, default: 0, min: 0 },
+  successCount: { type: Number, default: 0, min: 0 },
   failedCount: { type: Number, default: 0, min: 0 },
   startedAt: { type: Date },
   completedAt: { type: Date },

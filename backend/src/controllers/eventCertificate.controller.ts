@@ -219,22 +219,40 @@ async function assertEligibleForCertificate(
     return { ok: false, reason: 'Student account not found or inactive.' };
   }
 
-  const registration = await Registration.findOne({
-    studentId,
-    eventId: event._id,
-    status: 'REGISTERED',
-  }).lean();
+  const { EventRegistration } = await import('../models/index.js');
+  const registration =
+    (await Registration.findOne({
+      studentId,
+      eventId: event._id,
+      status: { $in: ['REGISTERED', 'registered', 'ACTIVE', 'active'] },
+    }).lean()) ||
+    (await EventRegistration.findOne({
+      $or: [{ studentId }, { email: student.email?.toLowerCase() }],
+      eventId: event._id,
+    }).lean());
+
   if (!registration) {
     return { ok: false, reason: 'Student is not registered for this event.' };
   }
 
-  const attendance = await Attendance.findOne({
-    studentId,
-    eventId: event._id,
-    status: 'PRESENT',
-  }).lean();
+  const attendance =
+    (await Attendance.findOne({
+      studentId,
+      eventId: event._id,
+      status: { $in: ['PRESENT', 'Present', 'present', 'ATTENDED', 'attended'] },
+    }).lean()) ||
+    (await EventRegistration.findOne({
+      $or: [{ studentId }, { email: student.email?.toLowerCase() }],
+      eventId: event._id,
+      attendanceStatus: { $in: ['attended', 'ATTENDED', 'PRESENT', 'present'] },
+    }).lean());
+
   if (!attendance) {
-    return { ok: false, reason: 'Participation not recorded for this student.' };
+    return {
+      ok: false,
+      reason:
+        'Student is registered, but attendance has not been recorded. Mark the student as attended before generating the certificate.',
+    };
   }
 
   return { ok: true, student, registration, attendance };

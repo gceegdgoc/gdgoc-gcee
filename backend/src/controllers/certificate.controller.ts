@@ -396,9 +396,6 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
     }
 
     // ── 3. Student identity + CERTIFICATE ELIGIBILITY ────────────────────
-    // A certificate may ONLY be issued to a student who has an account
-    // and is registered for THIS event. Participation (attendance) is also
-    // checked — the admin is expected to have marked it before generating.
     const cleanName = safeString(studentName).trim();
     const cleanEmail = safeString(studentEmail).trim().toLowerCase();
 
@@ -421,9 +418,6 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       return;
     }
 
-    // Check registration in BOTH models — Registration (public flow) and
-    // EventRegistration (admin/webhook flow). Status check is case-insensitive
-    // because legacy records may use 'registered' or 'REGISTERED'.
     const registrationStatusValues = ['registered', 'REGISTERED', 'active', 'ACTIVE'];
     const registration =
       (await Registration.findOne({
@@ -436,7 +430,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
         eventId: cleanEventId,
       }).lean()) ||
       (await EventRegistration.findOne({
-        studentId: studentRecord._id,
+        $or: [{ studentId: studentRecord._id }, { email: cleanEmail }],
         eventId: cleanEventId,
       }).lean());
 
@@ -449,16 +443,24 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       return;
     }
 
-    // Attendance check — accept all known case variants of the PRESENT status.
-    const attendance = await Attendance.findOne({
-      studentId: studentRecord._id,
-      eventId: cleanEventId,
-      status: { $in: ['PRESENT', 'Present', 'present'] },
-    }).lean();
+    // Attendance check — accept all known case variants of PRESENT or ATTENDED status.
+    const attendance =
+      (await Attendance.findOne({
+        studentId: studentRecord._id,
+        eventId: cleanEventId,
+        status: { $in: ['PRESENT', 'Present', 'present', 'ATTENDED', 'attended'] },
+      }).lean()) ||
+      (await EventRegistration.findOne({
+        $or: [{ studentId: studentRecord._id }, { email: cleanEmail }],
+        eventId: cleanEventId,
+        attendanceStatus: { $in: ['attended', 'ATTENDED', 'PRESENT', 'present'] },
+      }).lean());
+
     if (!attendance) {
       res.status(400).json({
         success: false,
-        message: 'Student is registered but attendance/participation has not been confirmed for this event. Please mark the student as attended first.',
+        message:
+          'Student is registered, but attendance has not been recorded. Mark the student as attended before generating the certificate.',
         errors: { studentEmail: 'Student attendance not recorded for this event.' },
       });
       return;
@@ -485,7 +487,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
 
       const pdfBuffer = await generateCertificatePDF({
         certificateId,
-        studentName: cleanName,
+        studentName: cleanName || studentRecord.name,
         eventName: cleanEventName,
         eventDate: cleanEventDate,
         issueDate,
@@ -499,7 +501,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
           studentId: studentRecord._id,
           eventId: cleanEventId,
           eventRegistrationId: registration._id,
-          studentName: cleanName,
+          studentName: cleanName || studentRecord.name,
           studentEmail: cleanEmail,
           organization: 'GDGoC GCEE',
           institution: 'Government College of Engineering, Erode',
@@ -534,7 +536,7 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       const downloadUrl = `${appUrl}/api/certificates/${cert.certificateId}/download`;
 
       const { subject, html, text } = generateCertificateEmailHtml({
-        studentName: cleanName,
+        studentName: cleanName || studentRecord.name,
         eventName: cleanEventName,
         certificateId: cert.certificateId,
         verificationUrl,

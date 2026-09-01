@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { env, CLUB, SITE_EMAIL } from '../config/env';
 import { baseEmailHtml, escapeHtml } from './email/templates/base.template';
+export { escapeHtml };
 import { generateOtpEmailHtml } from './email/templates/otp.template';
 import { generateWelcomeEmailHtml } from './email/templates/welcome.template';
 import { generateEventRegistrationEmailHtml } from './email/templates/eventRegistration.template';

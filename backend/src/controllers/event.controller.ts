@@ -304,7 +304,6 @@ export async function registerPublicEvent(req: any, res: Response) {
       (await EventRegistration.findOne({
         eventId: event._id,
         email: cleanEmail,
-        status: 'REGISTERED',
       }).lean());
 
     if (existingRegistration) {
@@ -370,9 +369,15 @@ export async function registerPublicEvent(req: any, res: Response) {
           studentId: student._id,
           studentName: (name || student.name).trim(),
           email: cleanEmail,
+          phone: (phone || student.phone || '').trim(),
+          college: (college || student.college || '').trim(),
+          department: (department || student.department || '').trim(),
+          yearOfStudy: (year || student.year || '').trim(),
+          rollNumber: (rollNumber || student.rollNumber || '').trim(),
           googleFormResponseId: registrationId,
           registeredAt: new Date(),
-          status: 'REGISTERED',
+          attendanceStatus: 'registered',
+          status: 'registered',
         },
       },
       { upsert: true }
@@ -471,15 +476,37 @@ export async function registerForEvent(req: AuthRequest, res: Response) {
     const reg = await Registration.create({ studentId: req.studentId, eventId: event._id, status: 'REGISTERED' });
     const regId = `REG-${event.eventId.toUpperCase()}-${String(reg._id).slice(-6).toUpperCase()}`;
 
+    // Sync EventRegistration model record
+    const { Student } = await import('../models/index.js');
+    const student = await Student.findById(req.studentId).lean();
+    if (student && student.email) {
+      await EventRegistration.findOneAndUpdate(
+        { eventId: event._id, email: student.email.toLowerCase() },
+        {
+          $set: {
+            studentId: student._id,
+            studentName: student.name,
+            email: student.email.toLowerCase(),
+            phone: student.phone || '',
+            college: student.college || 'Government College of Engineering, Erode',
+            department: student.department || '',
+            yearOfStudy: student.year || '',
+            rollNumber: student.rollNumber || '',
+            googleFormResponseId: regId,
+            registeredAt: new Date(),
+            attendanceStatus: 'registered',
+            status: 'registered',
+          },
+        },
+        { upsert: true }
+      );
+    }
+
     // Get live updated count
     const liveRegisteredCount = await Registration.countDocuments({
       eventId: event._id,
       status: 'REGISTERED',
     });
-
-    // Get student info to send confirmation email
-    const { Student } = await import('../models/index.js');
-    const student = await Student.findById(req.studentId).lean();
     if (student && student.email) {
       try {
         const { sendEventRegistrationConfirmationEmail } = await import('../utils/email.js');
