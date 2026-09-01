@@ -22,7 +22,7 @@ export default function VerifyCertificate() {
     setNotFound(false);
     setCert(null);
     api
-      .get(`/certificates/verify/${certificateId}`)
+      .get(`/certificates/${certificateId}`)
       .then((res) => {
         if (mounted) setCert(res.data.certificate);
       })

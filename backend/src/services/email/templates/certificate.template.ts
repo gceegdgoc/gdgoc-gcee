@@ -13,6 +13,7 @@ export function generateCertificateEmailHtml(opts: CertificateEmailOptions): { s
   const name = escapeHtml(opts.studentName || 'Student');
   const eventName = escapeHtml(opts.eventName || 'GDGoC GCEE Event');
   const certId = escapeHtml(opts.certificateId);
+  const certTitle = 'Certificate of Participation';
   const subject = `Your Certificate for ${opts.eventName || 'GDGoC GCEE'} is Ready!`;
 
   const content = `
@@ -20,7 +21,7 @@ export function generateCertificateEmailHtml(opts: CertificateEmailOptions): { s
       <td style="padding:32px 32px 12px 32px;">
         <p style="margin:0; color:#1e293b; font-size:16px; line-height:1.5;">Hello <strong>${name}</strong>,</p>
         <p style="margin:14px 0 0 0; color:#475569; font-size:14px; line-height:1.6;">
-          Your official certificate of participation for <strong>${eventName}</strong> has been issued!
+          Your official <strong>${certTitle}</strong> for <strong>${eventName}</strong> has been issued by ${CLUB.name}!
         </p>
       </td>
     </tr>
@@ -28,12 +29,20 @@ export function generateCertificateEmailHtml(opts: CertificateEmailOptions): { s
       <td style="padding:12px 32px;">
         <table width="100%" cellpadding="12" cellspacing="0" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
           <tr>
-            <td style="color:#64748b; font-size:12px; text-transform:uppercase; width:35%; border-bottom:1px solid #e2e8f0;">Certificate ID</td>
-            <td style="color:#0b1b33; font-size:13px; font-weight:700; font-family:monospace; border-bottom:1px solid #e2e8f0;">${certId}</td>
+            <td style="color:#64748b; font-size:12px; text-transform:uppercase; width:35%; border-bottom:1px solid #e2e8f0;">Student Name</td>
+            <td style="color:#0b1b33; font-size:13px; font-weight:700; border-bottom:1px solid #e2e8f0;">${name}</td>
           </tr>
           <tr>
-            <td style="color:#64748b; font-size:12px; text-transform:uppercase;">Event</td>
-            <td style="color:#0b1b33; font-size:13px; font-weight:600;">${eventName}</td>
+            <td style="color:#64748b; font-size:12px; text-transform:uppercase; width:35%; border-bottom:1px solid #e2e8f0;">Certificate Title</td>
+            <td style="color:#0b1b33; font-size:13px; font-weight:700; border-bottom:1px solid #e2e8f0;">${certTitle}</td>
+          </tr>
+          <tr>
+            <td style="color:#64748b; font-size:12px; text-transform:uppercase; width:35%; border-bottom:1px solid #e2e8f0;">Event Name</td>
+            <td style="color:#0b1b33; font-size:13px; font-weight:600; border-bottom:1px solid #e2e8f0;">${eventName}</td>
+          </tr>
+          <tr>
+            <td style="color:#64748b; font-size:12px; text-transform:uppercase;">Certificate ID</td>
+            <td style="color:#0b1b33; font-size:13px; font-weight:700; font-family:monospace;">${certId}</td>
           </tr>
         </table>
       </td>
@@ -41,12 +50,12 @@ export function generateCertificateEmailHtml(opts: CertificateEmailOptions): { s
     <tr>
       <td style="padding:20px 32px 32px 32px; text-align:center;">
         <div style="margin-bottom:20px;">
-          <a href="${escapeHtml(opts.verificationUrl)}" style="background-color:#4285F4; color:#ffffff; font-weight:700; font-size:14px; padding:12px 24px; border-radius:8px; text-decoration:none; display:inline-block; margin-right:8px;">
-            Verify Certificate
+          <a href="${escapeHtml(opts.verificationUrl)}" style="background-color:#4285F4; color:#ffffff; font-weight:700; font-size:14px; padding:12px 24px; border-radius:8px; text-decoration:none; display:inline-block; margin-right:8px; margin-bottom:8px;">
+            View Certificate
           </a>
           ${opts.downloadUrl ? `
-          <a href="${escapeHtml(opts.downloadUrl)}" style="background-color:#34A853; color:#ffffff; font-weight:700; font-size:14px; padding:12px 24px; border-radius:8px; text-decoration:none; display:inline-block;">
-            Download PDF
+          <a href="${escapeHtml(opts.downloadUrl)}" style="background-color:#34A853; color:#ffffff; font-weight:700; font-size:14px; padding:12px 24px; border-radius:8px; text-decoration:none; display:inline-block; margin-bottom:8px;">
+            Download Certificate
           </a>` : ''}
         </div>
         <p style="margin:0; color:#94a3b8; font-size:11px;">
@@ -58,10 +67,13 @@ export function generateCertificateEmailHtml(opts: CertificateEmailOptions): { s
 
   const text = `Hello ${opts.studentName || 'Student'},
 
-Your official certificate of participation for ${opts.eventName || 'GDGoC GCEE'} has been issued!
+Your official ${certTitle} for ${opts.eventName || 'GDGoC GCEE'} has been issued!
 
+Certificate Title: ${certTitle}
+Event Name: ${opts.eventName || 'GDGoC GCEE Event'}
 Certificate ID: ${opts.certificateId}
-Verification URL: ${opts.verificationUrl}
+View Certificate URL: ${opts.verificationUrl}
+${opts.downloadUrl ? `Download Certificate URL: ${opts.downloadUrl}` : ''}
 
 Best regards,
 GDGoC GCEE Team`;

@@ -54,9 +54,6 @@ const CANONICAL_PRODUCTION_URL = 'https://gdgoc-gcee.vercel.app';
  *   2. NEXT_PUBLIC_APP_URL / VITE_APP_URL — framework-specific explicit vars
  *   3. APP_URL / CLIENT_URL — generic explicit vars
  *   4. VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL — Vercel system-injected vars
- *      (lowest explicit priority because Vercel injects the *internal* project
- *       hostname, e.g. gdgoc-gcee-clubs.vercel.app, which may differ from the
- *       real custom/production domain)
  *   5. Hard-coded CANONICAL_PRODUCTION_URL when NODE_ENV=production or VERCEL=1
  *
  * In production / Vercel, never returns localhost so emails always have valid links.
@@ -71,15 +68,14 @@ export function getPublicAppUrl(): string {
     // Generic explicit vars
     process.env.APP_URL,
     process.env.CLIENT_URL,
-    // Vercel system-injected vars — lowest explicit priority because
-    // VERCEL_PROJECT_PRODUCTION_URL reflects the Vercel *project name* hostname
-    // (e.g. gdgoc-gcee-clubs.vercel.app) rather than the custom/real domain.
+    // Vercel system-injected vars
     process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '',
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
   ];
 
-  for (const c of candidates) {
+  for (let c of candidates) {
     if (c && typeof c === 'string' && c.trim() && !c.includes('localhost') && !c.includes('127.0.0.1')) {
+      c = c.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app');
       return c.trim().replace(/\/+$/, '');
     }
   }
@@ -91,7 +87,7 @@ export function getPublicAppUrl(): string {
 
   // Local development fallback
   const devCandidate = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
-  return devCandidate.trim().replace(/\/+$/, '');
+  return devCandidate.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app').trim().replace(/\/+$/, '');
 }
 
 /**
@@ -101,14 +97,16 @@ export function getPublicAppUrl(): string {
  * and download URLs so they always resolve to the correct production domain.
  */
 export function getCertificateBaseUrl(): string {
-  const explicit = process.env.PUBLIC_APP_URL || process.env.APP_URL || process.env.CLIENT_URL;
+  let explicit = process.env.PUBLIC_APP_URL || process.env.APP_URL || process.env.CLIENT_URL;
   if (explicit && !explicit.includes('localhost') && !explicit.includes('127.0.0.1')) {
+    explicit = explicit.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app');
     return explicit.trim().replace(/\/+$/, '');
   }
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
     return CANONICAL_PRODUCTION_URL;
   }
-  return process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+  const dev = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+  return dev.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app').trim().replace(/\/+$/, '');
 }
 
 /**

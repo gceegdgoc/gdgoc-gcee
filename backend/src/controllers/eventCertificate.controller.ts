@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { Response } from 'express';
 import { EventModel, Student, Registration, Attendance, Certificate } from '../models';
-import { env } from '../config/env';
+import { env, getCertificateBaseUrl } from '../config/env';
 import { formatDotDate, todayIST } from '../utils/dates';
 import { nextCertificateId } from '../utils/ids';
 import { generateQRCodeDataURL } from '../utils/qr';
@@ -244,7 +244,7 @@ async function createCertificateFor(student: any, registration: any, event: any,
   let certificateId = '';
   for (let attempt = 0; attempt < 4; attempt++) {
     certificateId = await nextCertificateId();
-    const versionUrl = `${env.appUrl}/certificate/${certificateId}`;
+    const versionUrl = `${getCertificateBaseUrl()}/certificate/${certificateId}`;
     const qrCode = await generateQRCodeDataURL(versionUrl);
     const issueDate = todayIST();
 

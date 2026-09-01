@@ -124,6 +124,8 @@ function publicView(cert: any) {
     revokedAt: cert.revokedAt,
     campaignName: cert.campaignName || '',
     qrCode: cert.qrCode || '',
+    certificateUrl: cert.verificationUrl || '',
+    sentAt: cert.sentAt || null,
   };
 }
 
@@ -554,6 +556,8 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
 
       if (sendResult.success) {
         emailSent = true;
+        cert.sentAt = new Date();
+        await cert.save();
       } else {
         emailError = sendResult.error;
       }
@@ -688,6 +692,9 @@ export async function resendCertificateEmail(req: any, res: Response) {
       res.status(500).json({ success: false, message: sendResult.error || 'Failed to send certificate email.' });
       return;
     }
+
+    cert.sentAt = new Date();
+    await cert.save();
 
     res.json({
       success: true,
