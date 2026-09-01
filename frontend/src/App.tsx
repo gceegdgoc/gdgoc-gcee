@@ -102,7 +102,7 @@ export default function App() {
         <Route index element={<StudentDashboard />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="events" element={<StudentEvents />} />
-        <Route path="attendance" element={<StudentAttendance />} />
+        <Route path="attendance" element={<Navigate to="/dashboard/events" replace />} />
         <Route path="certificates" element={<StudentCertificates />} />
         <Route path="resources" element={<StudentResources />} />
         <Route path="settings" element={<StudentSettings />} />

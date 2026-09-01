@@ -17,6 +17,16 @@ const server = app.listen(env.port, async () => {
   }
 });
 
+server.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[gdgoc-gcee] Port ${env.port} is already in use by another process.`);
+    console.error(`[gdgoc-gcee] To free port ${env.port}, run: fuser -k ${env.port}/tcp`);
+    process.exit(1);
+  } else {
+    console.error('[gdgoc-gcee] Server error:', err);
+  }
+});
+
 // Graceful shutdown for local dev.
 process.on('SIGINT', () => {
   server.close(() => process.exit(0));

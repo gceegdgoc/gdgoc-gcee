@@ -5,7 +5,7 @@ export interface IAttendance extends Document {
   eventId: Types.ObjectId;
   status: 'PRESENT' | 'ABSENT' | 'Present' | 'Absent' | string;
   markedAt?: Date;
-  markedBy?: Types.ObjectId;
+  markedBy?: any;
   method?: string;
   eventDate?: any;
 }
@@ -15,7 +15,7 @@ const attendanceSchema = new Schema<IAttendance>({
   eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
   status: { type: String, enum: ['PRESENT', 'ABSENT', 'Present', 'Absent'], required: true },
   markedAt: { type: Date, default: Date.now },
-  markedBy: { type: Schema.Types.ObjectId, ref: 'Admin' },
+  markedBy: { type: Schema.Types.Mixed },
   method: { type: String },
 }, { timestamps: true });
 

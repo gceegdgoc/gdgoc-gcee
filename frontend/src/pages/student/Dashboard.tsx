@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   Ticket,
-  ClipboardCheck,
-  Percent,
+  Award,
   CalendarDays,
   ArrowRight,
   User2,
@@ -19,7 +18,6 @@ import type { DashboardStats } from '../../types';
 interface DashboardData {
   stats: DashboardStats;
   upcomingEvents: any[];
-  recentAttendance: any[];
 }
 
 export default function Dashboard() {
@@ -44,8 +42,7 @@ export default function Dashboard() {
 
   const cards = [
     { icon: Ticket, label: 'Events Registered', value: data.stats.registered, color: 'bg-g-blue/10 text-g-blue' },
-    { icon: ClipboardCheck, label: 'Events Attended', value: data.stats.attended, color: 'bg-g-green/10 text-g-green' },
-    { icon: Percent, label: 'Attendance %', value: `${data.stats.attendancePercent}%`, color: 'bg-g-yellow/10 text-yellow-700' },
+    { icon: Award, label: 'Certificates Earned', value: data.stats.certificates || 0, color: 'bg-g-green/10 text-g-green' },
   ];
 
   return (
@@ -59,7 +56,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {cards.map(({ icon: Icon, label, value, color }) => (
           <div key={label} className="card p-5">
             <div className={cn('mb-3 flex h-10 w-10 items-center justify-center rounded-xl', color)}>
@@ -142,43 +139,6 @@ export default function Dashboard() {
           </dl>
           <Link to="/dashboard/profile" className="btn-outline mt-5 w-full">Edit profile</Link>
         </div>
-      </div>
-
-      {/* Recent attendance */}
-      <div className="card p-6">
-        <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-navy-900">
-          <ClipboardCheck className="h-5 w-5 text-g-yellow" /> Recent attendance
-        </h2>
-        {data.recentAttendance.length === 0 ? (
-          <EmptyState title="No attendance yet" description="Attendance is recorded on the day of each event." />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-navy-100 text-xs uppercase tracking-wide text-ink-faint">
-                  <th className="pb-2 font-medium">Event date</th>
-                  <th className="pb-2 font-medium">Status</th>
-                  <th className="pb-2 font-medium">Method</th>
-                  <th className="pb-2 font-medium">Marked at</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy-50">
-                {data.recentAttendance.map((a) => (
-                  <tr key={a.id}>
-                    <td className="py-3">{formatHumanDate(a.eventDate)}</td>
-                    <td className="py-3">
-                      <span className={cn('chip', a.status === 'PRESENT' ? 'bg-g-green/10 text-green-700' : 'bg-g-red/10 text-g-red')}>
-                        {a.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-ink-soft">{a.method}</td>
-                    <td className="py-3 text-ink-soft">{a.markedAt ? new Date(a.markedAt).toLocaleString('en-IN') : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );

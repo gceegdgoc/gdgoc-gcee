@@ -31,6 +31,7 @@ import {
   quickGenerateAndSendCertificate,
   previewCertificatePdf,
   resendCertificateEmail,
+  deleteCertificate,
 } from '../controllers/certificate.controller';
 import {
   listEventParticipants,
@@ -73,6 +74,7 @@ import { exportStudents } from '../controllers/export.controller';
 import {
   adminListRegistrations,
   adminListAttended,
+  clearAllRegistrationsData,
 } from '../controllers/adminDashboard.controller';
 import {
   adminListFormRegistrations,
@@ -166,6 +168,7 @@ router.delete('/events/:eventId/certificates/:certificateId', deleteEventCertifi
 // Registrations & Attendance (per event)
 router.get('/registrations', adminListRegistrations);
 router.get('/attended', adminListAttended);
+router.delete('/registrations/clear-all', clearAllRegistrationsData);
 
 // Students
 router.get('/students', adminListStudents);
@@ -204,6 +207,7 @@ router.post('/certificates/preview-pdf', previewCertificatePdf);
 router.post('/certificates/:certificateId/send-email', resendCertificateEmail);
 router.post('/certificates/:certificateId/revoke', revokeCertificate);
 router.post('/certificates/:certificateId/restore', restoreCertificate);
+router.delete('/certificates/:certificateId', deleteCertificate);
 
 // Gallery
 router.post('/gallery', uploadMemory.single('image'), createGalleryItem);

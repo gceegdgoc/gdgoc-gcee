@@ -408,18 +408,19 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       return;
     }
 
-    const studentRecord = await Student.findOne({ email: cleanEmail }).lean();
+    let studentRecord = await Student.findOne({ email: cleanEmail }).lean();
     if (!studentRecord) {
-      res.status(400).json({
-        success: false,
-        message: 'No GDGoC GCEE student account was found for this email.',
-        errors: { studentEmail: 'No student account found for this email.' },
+      const created = await Student.create({
+        name: cleanName || 'Student',
+        email: cleanEmail,
+        department: 'General',
+        isActive: true,
       });
-      return;
+      studentRecord = created.toObject();
     }
 
     const registrationStatusValues = ['registered', 'REGISTERED', 'active', 'ACTIVE'];
-    const registration =
+    let registration =
       (await Registration.findOne({
         studentId: studentRecord._id,
         eventId: cleanEventId,
@@ -435,16 +436,17 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       }).lean());
 
     if (!registration) {
-      res.status(400).json({
-        success: false,
-        message: 'Student is not registered for this event. Please register the student first.',
-        errors: { studentEmail: 'Student is not registered for this event.' },
+      const createdReg = await Registration.create({
+        studentId: studentRecord._id,
+        eventId: cleanEventId,
+        status: 'REGISTERED',
+        registeredAt: new Date(),
       });
-      return;
+      registration = createdReg.toObject();
     }
 
-    // Attendance check — accept all known case variants of PRESENT or ATTENDED status.
-    const attendance =
+    // Attendance check — auto-record attendance if missing
+    let attendance =
       (await Attendance.findOne({
         studentId: studentRecord._id,
         eventId: cleanEventId,
@@ -457,13 +459,20 @@ export async function quickGenerateAndSendCertificate(req: any, res: Response) {
       }).lean());
 
     if (!attendance) {
-      res.status(400).json({
-        success: false,
-        message:
-          'Student is registered, but attendance has not been recorded. Mark the student as attended before generating the certificate.',
-        errors: { studentEmail: 'Student attendance not recorded for this event.' },
-      });
-      return;
+      const autoAtt = await Attendance.findOneAndUpdate(
+        { studentId: studentRecord._id, eventId: cleanEventId },
+        {
+          $set: {
+            status: 'PRESENT',
+            eventDate: cleanEventDate,
+            method: 'AUTO_REGISTRATION',
+            markedBy: `admin:${req.adminId || 'dashboard'}`,
+            markedAt: new Date(),
+          },
+        },
+        { upsert: true, new: true }
+      ).lean();
+      attendance = autoAtt;
     }
 
     const existingCert = await Certificate.findOne({ studentId: studentRecord._id, eventId: cleanEventId }).lean();
@@ -702,6 +711,25 @@ export async function resendCertificateEmail(req: any, res: Response) {
       success: true,
       message: `Certificate email delivered to ${targetEmail}!`,
     });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+/**
+ * DELETE /api/admin/certificates/:certificateId
+ * Hard-delete a certificate record permanently from the database (admin only).
+ */
+export async function deleteCertificate(req: any, res: Response) {
+  try {
+    await connectDB();
+    const { certificateId } = req.params;
+    const cert = await Certificate.findOneAndDelete({ certificateId });
+    if (!cert) {
+      res.status(404).json({ success: false, message: 'Certificate not found.' });
+      return;
+    }
+    res.json({ success: true, message: `Certificate ${certificateId} deleted permanently.` });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
   }

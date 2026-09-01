@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Response } from 'express';
-import { EventModel, Student, Registration, Attendance, Certificate } from '../models';
+import { EventModel, Student, Registration, Attendance, Certificate, EventRegistration, GoogleFormRegistration } from '../models';
 import { env, getCertificateBaseUrl } from '../config/env';
 import { formatDotDate, todayIST } from '../utils/dates';
 import { nextCertificateId } from '../utils/ids';
@@ -63,37 +63,95 @@ export async function listEventParticipants(req: any, res: Response) {
     const search = (req.query.search || '').toString().trim().toLowerCase();
     const participation = (req.query.participation || '').toString();
 
-    const registrations = await Registration.find({ eventId: event._id, status: 'REGISTERED' })
-      .populate('studentId', 'name email rollNumber department year phone college')
-      .sort({ registeredAt: 1 })
-      .lean();
+    // Fetch from all registration collections, Attendance & Certificate
+    const [regs, eventRegs, formRegs, attendances, certs] = await Promise.all([
+      Registration.find({ eventId: event._id, status: 'REGISTERED' })
+        .populate('studentId', 'name email rollNumber department year phone college')
+        .sort({ registeredAt: 1 })
+        .lean(),
+      EventRegistration.find({ eventId: event._id, status: { $ne: 'CANCELLED' } }).lean(),
+      GoogleFormRegistration.find({ eventId: event._id }).lean(),
+      Attendance.find({ eventId: event._id }).lean(),
+      Certificate.find({ eventId: event._id }).lean(),
+    ]);
 
-    const attendance = await Attendance.find({ eventId: event._id }).lean();
-    const attMap = new Map(attendance.map((a) => [String(a.studentId), a.status]));
-
-    const certs = await Certificate.find({ eventId: event._id, studentId: { $ne: null } }).lean();
-    const certMap = new Map<string, any>();
-    for (const c of certs) {
-      certMap.set(`${String(c.studentId)}`, c);
+    const attByStudentId = new Map<string, string>();
+    const attByEmail = new Map<string, string>();
+    for (const a of attendances) {
+      if (a.studentId) attByStudentId.set(String(a.studentId), a.status);
+    }
+    for (const er of eventRegs) {
+      if (er.email && (er.attendanceStatus === 'attended' || er.attendanceStatus === 'PRESENT')) {
+        attByEmail.set(er.email.toLowerCase().trim(), 'PRESENT');
+      }
     }
 
-    let participants = registrations
-      .filter((r) => r.studentId)
-      .map((r) => {
-        const st = r.studentId as any;
-        const participated = attMap.get(String(st._id)) === 'PRESENT';
-        const cert = certMap.get(String(st._id));
-        return {
-          registrationId: r._id,
-          studentId: st._id,
-          name: st.name || '',
-          email: st.email || '',
-          rollNumber: st.rollNumber || '',
-          department: st.department || '',
-          year: st.year || '',
-          college: st.college || '',
+    const certByStudentId = new Map<string, any>();
+    const certByEmail = new Map<string, any>();
+    for (const c of certs) {
+      if (c.studentId) certByStudentId.set(String(c.studentId), c);
+      if (c.studentEmail) certByEmail.set(c.studentEmail.toLowerCase().trim(), c);
+    }
+
+    const participantMap = new Map<string, any>();
+
+    // Process Registration collection
+    for (const r of regs) {
+      const st = r.studentId as any;
+      if (!st) continue;
+      const email = (st.email || '').toLowerCase().trim();
+      const key = email || String(st._id);
+
+      const explicitAbsent = attByStudentId.get(String(st._id)) === 'ABSENT' || attByEmail.get(email) === 'ABSENT';
+      const isPresent = !explicitAbsent;
+      const cert = certByStudentId.get(String(st._id)) || certByEmail.get(email);
+
+      participantMap.set(key, {
+        registrationId: r._id,
+        studentId: st._id,
+        name: st.name || '',
+        email: st.email || '',
+        rollNumber: st.rollNumber || '',
+        department: st.department || '',
+        year: st.year || '',
+        college: st.college || '',
+        registered: true,
+        participation: isPresent ? 'PARTICIPATED' : 'NOT_PARTICIPATED',
+        certificate: cert
+          ? {
+              certificateId: cert.certificateId,
+              status: cert.status,
+              eventDateLabel: formatDotDate(cert.eventDate || ''),
+            }
+          : null,
+      });
+    }
+
+    // Process EventRegistration collection
+    for (const er of eventRegs) {
+      const email = (er.email || '').toLowerCase().trim();
+      const key = email || String(er._id);
+
+      if (!participantMap.has(key)) {
+        const explicitAbsent =
+          er.attendanceStatus === 'absent' ||
+          er.attendanceStatus === 'ABSENT' ||
+          attByEmail.get(email) === 'ABSENT' ||
+          (er.studentId && attByStudentId.get(String(er.studentId)) === 'ABSENT');
+        const isPresent = !explicitAbsent;
+        const cert = (er.studentId && certByStudentId.get(String(er.studentId))) || certByEmail.get(email);
+
+        participantMap.set(key, {
+          registrationId: er._id,
+          studentId: er.studentId || null,
+          name: er.studentName || 'Student',
+          email: er.email || '',
+          rollNumber: er.rollNumber || '',
+          department: er.department || '',
+          year: er.yearOfStudy || er.year || '',
+          college: er.college || '',
           registered: true,
-          participation: participated ? 'PARTICIPATED' : 'NOT_PARTICIPATED',
+          participation: isPresent ? 'PARTICIPATED' : 'NOT_PARTICIPATED',
           certificate: cert
             ? {
                 certificateId: cert.certificateId,
@@ -101,8 +159,43 @@ export async function listEventParticipants(req: any, res: Response) {
                 eventDateLabel: formatDotDate(cert.eventDate || ''),
               }
             : null,
-        };
-      });
+        });
+      }
+    }
+
+    // Process GoogleFormRegistration collection
+    for (const fr of formRegs) {
+      const email = (fr.email || '').toLowerCase().trim();
+      const key = email || String(fr._id);
+
+      if (!participantMap.has(key)) {
+        const explicitAbsent = attByEmail.get(email) === 'ABSENT';
+        const isPresent = !explicitAbsent;
+        const cert = certByEmail.get(email);
+
+        participantMap.set(key, {
+          registrationId: fr._id,
+          studentId: null,
+          name: fr.name || 'Student',
+          email: fr.email || '',
+          rollNumber: fr.rollNumber || '',
+          department: fr.department || '',
+          year: fr.year || '',
+          college: fr.college || '',
+          registered: true,
+          participation: isPresent ? 'PARTICIPATED' : 'NOT_PARTICIPATED',
+          certificate: cert
+            ? {
+                certificateId: cert.certificateId,
+                status: cert.status,
+                eventDateLabel: formatDotDate(cert.eventDate || ''),
+              }
+            : null,
+        });
+      }
+    }
+
+    let participants = Array.from(participantMap.values());
 
     if (search) {
       participants = participants.filter(
@@ -149,8 +242,8 @@ export async function listEventParticipants(req: any, res: Response) {
 
 /**
  * POST /api/admin/events/:eventId/participation
- * Body: { entries: [{ studentId, participated: boolean }] }
- * Marks participation (Attendance PRESENT / ABSENT). Only registered students are accepted.
+ * Body: { entries: [{ studentId, email, registrationId, participated: boolean }] }
+ * Marks participation (Attendance PRESENT / ABSENT).
  */
 export async function markEventParticipation(req: any, res: Response) {
   try {
@@ -168,33 +261,62 @@ export async function markEventParticipation(req: any, res: Response) {
       return;
     }
 
-    const registered = await Registration.find({ eventId: event._id, status: 'REGISTERED' })
-      .select('studentId')
-      .lean();
-    const registeredIds = new Set(registered.map((r) => String(r.studentId)));
-
     let marked = 0;
     for (const entry of entries) {
-      const { studentId, participated } = entry;
-      if (!studentId || !registeredIds.has(String(studentId))) continue;
-
+      const { studentId, email, registrationId, participated } = entry;
       const status = participated ? 'PRESENT' : 'ABSENT';
-      const existing = await Attendance.findOne({ studentId, eventId: event._id });
-      if (existing) {
-        existing.status = status;
-        existing.markedBy = `admin:${req.adminId}`;
-        existing.markedAt = new Date();
-        await existing.save();
-      } else {
-        await Attendance.create({
-          studentId,
-          eventId: event._id,
-          eventDate: event.date,
-          status,
-          method: 'ADMIN',
-          markedBy: `admin:${req.adminId}`,
+      const attendanceStatus = participated ? 'attended' : 'absent';
+      const cleanEmail = (email || '').toLowerCase().trim();
+
+      // Find student by ID or email
+      let targetStudent: any = null;
+      if (studentId) {
+        targetStudent = await Student.findById(studentId);
+      } else if (cleanEmail) {
+        targetStudent = await Student.findOne({ email: cleanEmail });
+      }
+
+      if (targetStudent) {
+        // Update Attendance model
+        await Attendance.findOneAndUpdate(
+          { studentId: targetStudent._id, eventId: event._id },
+          {
+            $set: {
+              status,
+              eventDate: event.date,
+              method: 'ADMIN',
+              markedBy: `admin:${req.adminId || 'dashboard'}`,
+              markedAt: new Date(),
+            },
+          },
+          { upsert: true }
+        );
+
+        // Ensure Registration model is updated
+        await Registration.findOneAndUpdate(
+          { studentId: targetStudent._id, eventId: event._id },
+          { $set: { status: 'REGISTERED' } },
+          { upsert: true }
+        );
+      }
+
+      // Update EventRegistration model if present
+      if (cleanEmail) {
+        await EventRegistration.findOneAndUpdate(
+          { eventId: event._id, email: cleanEmail },
+          {
+            $set: {
+              attendanceStatus,
+              updatedAt: new Date(),
+            },
+          }
+        );
+      } else if (registrationId) {
+        await EventRegistration.findByIdAndUpdate(registrationId, {
+          $set: { attendanceStatus, updatedAt: new Date() },
         });
       }
+
       marked += 1;
     }
 
@@ -235,7 +357,7 @@ async function assertEligibleForCertificate(
     return { ok: false, reason: 'Student is not registered for this event.' };
   }
 
-  const attendance =
+  let attendance =
     (await Attendance.findOne({
       studentId,
       eventId: event._id,
@@ -248,11 +370,21 @@ async function assertEligibleForCertificate(
     }).lean());
 
   if (!attendance) {
-    return {
-      ok: false,
-      reason:
-        'Student is registered, but attendance has not been recorded. Mark the student as attended before generating the certificate.',
-    };
+    // Attendance was not recorded for this event — automatically mark as PRESENT for registered student
+    const autoAtt = await Attendance.findOneAndUpdate(
+      { studentId, eventId: event._id },
+      {
+        $set: {
+          status: 'PRESENT',
+          eventDate: event.date,
+          method: 'AUTO_REGISTRATION',
+          markedBy: 'system',
+          markedAt: new Date(),
+        },
+      },
+      { upsert: true, new: true }
+    ).lean();
+    attendance = autoAtt;
   }
 
   return { ok: true, student, registration, attendance };

@@ -11,6 +11,7 @@ import {
   Sparkles,
   Eye,
   FileDown,
+  Trash2,
 } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { PageLoader, Spinner } from '../../components/ui/Spinner';
@@ -233,6 +234,19 @@ export default function AdminCertificates() {
     }
   };
 
+  const deleteCert = async (cert: Row) => {
+    if (!window.confirm(`Are you sure you want to permanently delete certificate ${cert.certificateId} for ${cert.studentName}? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/admin/certificates/${cert.certificateId}`);
+      toast.success(res.data.message || 'Certificate deleted permanently.');
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
   const valid = rows.filter((r) => r.status === 'VALID').length;
 
   // Format label for live preview
@@ -376,6 +390,13 @@ export default function AdminCertificates() {
                           <ShieldCheck className="h-4 w-4" />
                         </button>
                       )}
+                      <button
+                        onClick={() => deleteCert(c)}
+                        className="rounded-lg p-2 text-ink-soft transition hover:bg-g-red/10 hover:text-g-red"
+                        title="Delete permanently"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
