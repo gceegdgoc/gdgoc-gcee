@@ -208,8 +208,8 @@ function drawQrBadge(doc: PDFKit.PDFDocument, cx: number, cy: number, qrCodeData
     .font('Helvetica-Bold')
     .fontSize(5)
     .fillColor(DEEP_NAVY)
-    .text('SCAN TO DOWNLOAD', cx - 35, cy + 24, { width: 70, align: 'center' })
-    .text('YOUR CERTIFICATE', cx - 35, cy + 30, { width: 70, align: 'center' });
+    .text('SCAN TO VERIFY', cx - 35, cy + 24, { width: 70, align: 'center' })
+    .text('CERTIFICATE', cx - 35, cy + 30, { width: 70, align: 'center' });
 
   doc.restore();
 }
@@ -218,6 +218,24 @@ function drawQrBadge(doc: PDFKit.PDFDocument, cx: number, cy: number, qrCodeData
  * Build a premium A4 landscape certificate PDF matching the exact reference design.
  */
 export async function generateCertificatePDF(data: CertificatePdfData): Promise<Buffer> {
+  const participantName = safeString(data.studentName).trim() || '{{studentName}}';
+  const eventName = safeString(data.eventName).trim() || '{{eventName}}';
+  const certId = safeString(data.certificateId).trim() || '{{certificateId}}';
+  const rawDate = safeString(data.eventDate || data.issueDate).trim();
+  const dateFormatted = rawDate
+    ? (rawDate.includes('{{') ? rawDate : formatFullDate(rawDate))
+    : '{{eventDate}}';
+
+  // Dynamic font sizing for long student names
+  let nameFontSize = 38;
+  if (participantName.length > 32) nameFontSize = 24;
+  else if (participantName.length > 22) nameFontSize = 30;
+
+  // Dynamic font sizing for long event names
+  let eventFontSize = 20;
+  if (eventName.length > 45) eventFontSize = 14;
+  else if (eventName.length > 30) eventFontSize = 17;
+
   const doc = new PDFDocument({
     size: 'A4',
     layout: 'landscape',
@@ -332,12 +350,12 @@ export async function generateCertificatePDF(data: CertificatePdfData): Promise<
     .fillColor(GRAY)
     .text('THIS IS PROUDLY PRESENTED TO', center - 250, 206, { width: 500, align: 'center' });
 
-  // 6. Student Name in large elegant style
+  // 6. Student Name in large elegant style (dynamic auto-scaled font size)
   doc
     .font('Times-BoldItalic')
-    .fontSize(38)
+    .fontSize(nameFontSize)
     .fillColor('#0f2c59')
-    .text(data.studentName, center - 300, 226, { width: 600, align: 'center', ellipsis: true });
+    .text(participantName, center - 300, 226, { width: 600, align: 'center', ellipsis: true });
 
   // Gold divider with diamond knot
   const divY = 276;
@@ -352,12 +370,12 @@ export async function generateCertificatePDF(data: CertificatePdfData): Promise<
     .fillColor(GRAY)
     .text('for actively participating in the event', center - 250, 290, { width: 500, align: 'center' });
 
-  // Event Name
+  // Event Name (dynamic auto-scaled font size)
   doc
     .font('Helvetica-Bold')
-    .fontSize(20)
+    .fontSize(eventFontSize)
     .fillColor(NAVY)
-    .text(data.eventName, center - 300, 310, { width: 600, align: 'center', ellipsis: true });
+    .text(eventName, center - 300, 310, { width: 600, align: 'center', ellipsis: true });
 
   doc
     .font('Helvetica')
@@ -366,7 +384,6 @@ export async function generateCertificatePDF(data: CertificatePdfData): Promise<
     .text('organized by GDGoC GCEE', center - 250, 338, { width: 500, align: 'center' });
 
   // 8. Event Date Badge (Calendar icon + formatted date)
-  const dateFormatted = formatFullDate(data.eventDate || data.issueDate);
   const dateBoxY = 366;
   doc.save();
   // Blue/Gold calendar icon representation
@@ -404,7 +421,7 @@ export async function generateCertificatePDF(data: CertificatePdfData): Promise<
     .font('Helvetica-Bold')
     .fontSize(9)
     .fillColor(NAVY)
-    .text(`CERTIFICATE ID: ${data.certificateId}`, center - 200, bottomY, {
+    .text(`CERTIFICATE ID: ${certId}`, center - 200, bottomY, {
       width: 400,
       align: 'center',
     });
