@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   Ticket,
-  Award,
   CalendarDays,
   ArrowRight,
   User2,
@@ -42,7 +41,6 @@ export default function Dashboard() {
 
   const cards = [
     { icon: Ticket, label: 'Events Registered', value: data.stats.registered, color: 'bg-g-blue/10 text-g-blue' },
-    { icon: Award, label: 'Certificates Earned', value: data.stats.certificates || 0, color: 'bg-g-green/10 text-g-green' },
   ];
 
   return (

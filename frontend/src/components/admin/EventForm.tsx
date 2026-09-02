@@ -21,7 +21,6 @@ interface EventFormData {
   registrationEnabled: boolean;
   registrationDeadline: string;
   registrationLink: string;
-  isCertificateEligible: boolean;
   isInauguration: boolean;
   status: string;
   poster: string;
@@ -42,7 +41,6 @@ function toForm(event?: GEvent & any): EventFormData {
     registrationEnabled: event?.registrationEnabled ?? true,
     registrationDeadline: event?.registrationDeadline || '',
     registrationLink: event?.registrationLink || '',
-    isCertificateEligible: event?.isCertificateEligible ?? false,
     isInauguration: event?.isInauguration ?? false,
     status: event?.status || 'UPCOMING',
     poster: event?.poster || event?.banner || '',
@@ -100,7 +98,6 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
       registrationEnabled: form.registrationEnabled,
       registrationDeadline: form.registrationDeadline,
       registrationLink: form.registrationLink,
-      isCertificateEligible: form.isInauguration ? false : form.isCertificateEligible,
       isInauguration: form.isInauguration,
       status: form.status,
       poster: form.poster,
@@ -132,8 +129,7 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
           <div>
             <p className="font-semibold">Inauguration event</p>
             <p className="mt-0.5">
-              This event will not contribute to certificate eligibility. It will still appear in events, the
-              timeline, gallery and attendance records.
+              This event will appear in events, the timeline, gallery and attendance records.
             </p>
           </div>
         </div>
@@ -226,25 +222,7 @@ export function EventForm({ event, onSaved }: { event?: GEvent; onSaved?: () => 
             <input type="checkbox" className="h-4 w-4 accent-[#34A853]" checked={form.isInauguration} onChange={(e) => update('isInauguration', e.target.checked)} />
             <div>
               <p className="text-sm font-semibold text-navy-900">Inauguration event</p>
-              <p className="text-xs text-ink-muted">If enabled, this event will NOT contribute to certificate eligibility.</p>
-            </div>
-          </label>
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-navy-100 p-4 transition hover:bg-navy-50/50 disabled:cursor-not-allowed disabled:opacity-50">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-[#34A853]"
-              checked={form.isCertificateEligible}
-              disabled={form.isInauguration}
-              onChange={(e) => update('isCertificateEligible', e.target.checked)}
-            />
-            <div>
-              <p className="text-sm font-semibold text-navy-900">Certificate eligible</p>
-              <p className="text-xs text-ink-muted">
-                {form.isInauguration
-                  ? 'Automatically disabled because this is an inauguration event.'
-                  : 'Attendance for this event counts towards certificates.'}
-              </p>
+              <p className="text-xs text-ink-muted">Mark as official inauguration event.</p>
             </div>
           </label>
         </div>

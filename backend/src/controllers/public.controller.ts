@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { EventModel, Registration, Attendance, Certificate, Member, Student, ContactMessage } from '../models';
+import { EventModel, Registration, Attendance, Member, Student, ContactMessage } from '../models';
 import { todayIST } from '../utils/dates';
 import { connectDB } from '../config/db';
 import { sendContactEmail, emailIsConfigured, getEmailConfigStatus } from '../utils/email';
@@ -19,7 +19,6 @@ export async function publicStats(_: any, res: Response) {
       totalStudents,
       members,
       attendanceRecords,
-      certificates,
       totalRegistrations,
     ] = await Promise.all([
       EventModel.countDocuments(),
@@ -29,7 +28,6 @@ export async function publicStats(_: any, res: Response) {
       Student.countDocuments({ isActive: true }),
       Member.countDocuments({ isActive: true }),
       Attendance.countDocuments({ status: 'PRESENT' }),
-      Certificate.countDocuments({ status: 'VALID' }),
       Registration.countDocuments({ status: 'REGISTERED' }),
     ]);
 
@@ -43,7 +41,6 @@ export async function publicStats(_: any, res: Response) {
         totalStudents,
         members,
         attendanceRecords,
-        certificates,
         totalRegistrations,
       },
     });

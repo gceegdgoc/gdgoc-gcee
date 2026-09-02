@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { CalendarDays, MapPin, Clock, Ticket, ArrowRight, Award, Sparkles } from 'lucide-react';
+import { CalendarDays, MapPin, Clock, Ticket, ArrowRight, Sparkles } from 'lucide-react';
 import { PageLoader } from '../../components/ui/Spinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { StatusBadge } from '../../components/ui/Badge';
@@ -69,9 +69,6 @@ export default function MyEvents() {
                   <StatusBadge status={ev.effectiveStatus} />
                   {ev.isInauguration && (
                     <span className="chip bg-g-yellow/15 text-yellow-700"><Sparkles className="h-3 w-3" /> Inauguration</span>
-                  )}
-                  {ev.isCertificateEligible && (
-                    <span className="chip bg-g-green/10 text-green-700"><Award className="h-3 w-3" /> Cert eligible</span>
                   )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">

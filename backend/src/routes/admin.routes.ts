@@ -14,34 +14,6 @@ import {
   getVerifiedStudentCount,
 } from '../controllers/event.controller';
 import {
-  listCampaigns,
-  getCampaign,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-  calculateEligibility,
-  generateCertificates,
-  generateSingleCertificate,
-} from '../controllers/campaign.controller';
-import {
-  adminListCertificates,
-  revokeCertificate,
-  restoreCertificate,
-  adminCertificateStats,
-  quickGenerateAndSendCertificate,
-  previewCertificatePdf,
-  resendCertificateEmail,
-  deleteCertificate,
-} from '../controllers/certificate.controller';
-import {
-  listEventParticipants,
-  markEventParticipation,
-  generateEventCertificates,
-  previewEventCertificate,
-  listEventCertificates,
-  deleteEventCertificate,
-} from '../controllers/eventCertificate.controller';
-import {
   adminListStudents,
   adminGetStudent,
   adminToggleStudentStatus,
@@ -157,14 +129,6 @@ router.get('/events/:eventId/sending-history', getEventSendingHistory);
 router.delete('/events/:eventId/registrations/clear', clearEventRegistrations);
 router.delete('/events/:eventId/registrations/:registrationId', deleteEventRegistration);
 
-// Event certificate management (register → participate → certificate)
-router.get('/events/:eventId/participants', listEventParticipants);
-router.post('/events/:eventId/participation', markEventParticipation);
-router.get('/events/:eventId/certificates', listEventCertificates);
-router.post('/events/:eventId/certificates/generate', generateEventCertificates);
-router.post('/events/:eventId/certificates/preview', previewEventCertificate);
-router.delete('/events/:eventId/certificates/:certificateId', deleteEventCertificate);
-
 // Registrations & Attendance (per event)
 router.get('/registrations', adminListRegistrations);
 router.get('/attended', adminListAttended);
@@ -188,26 +152,6 @@ router.get('/coordinator-roles', adminListCoordinatorRoles);
 router.post('/coordinator-roles', createCoordinatorRole);
 router.put('/coordinator-roles/:id', updateCoordinatorRole);
 router.delete('/coordinator-roles/:id', deleteCoordinatorRole);
-
-// Certificate campaigns
-router.get('/certificate-campaigns', listCampaigns);
-router.get('/certificate-campaigns/:id', getCampaign);
-router.post('/certificate-campaigns', createCampaign);
-router.put('/certificate-campaigns/:id', updateCampaign);
-router.delete('/certificate-campaigns/:id', deleteCampaign);
-router.post('/certificate-campaigns/:id/calculate', calculateEligibility);
-router.post('/certificate-campaigns/:id/generate', generateCertificates);
-router.post('/certificate-campaigns/:id/generate/:studentId', generateSingleCertificate);
-
-// Certificates
-router.get('/certificates', adminListCertificates);
-router.get('/certificates/stats', adminCertificateStats);
-router.post('/certificates/quick-generate', quickGenerateAndSendCertificate);
-router.post('/certificates/preview-pdf', previewCertificatePdf);
-router.post('/certificates/:certificateId/send-email', resendCertificateEmail);
-router.post('/certificates/:certificateId/revoke', revokeCertificate);
-router.post('/certificates/:certificateId/restore', restoreCertificate);
-router.delete('/certificates/:certificateId', deleteCertificate);
 
 // Gallery
 router.post('/gallery', uploadMemory.single('image'), createGalleryItem);

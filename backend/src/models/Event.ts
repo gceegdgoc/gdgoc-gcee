@@ -49,7 +49,6 @@ export interface IEvent extends Document {
   registrationUrl?: string;
   registrationLink?: string;
   manualRegistrationCount?: number;
-  isCertificateEligible: boolean;
   isInauguration?: boolean;
   status: (typeof EVENT_STATUSES)[number];
   emailSent?: boolean;
@@ -99,7 +98,6 @@ const eventSchema = new Schema<IEvent>(
     registrationUrl: { type: String, default: '' },
     registrationLink: { type: String, default: '' },
     manualRegistrationCount: { type: Number, default: 0, min: 0 },
-    isCertificateEligible: { type: Boolean, default: false },
     isInauguration: { type: Boolean, default: false },
     status: { type: String, enum: [...EVENT_STATUSES], default: 'UPCOMING' },
     emailSent: { type: Boolean, default: false },

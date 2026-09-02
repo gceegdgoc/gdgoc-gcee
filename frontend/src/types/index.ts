@@ -54,7 +54,6 @@ export interface GEvent {
   responseSheetName?: string;
   lastSyncedAt?: string;
   manualRegistrationCount: number;
-  isCertificateEligible: boolean;
   isInauguration: boolean;
   emailSent?: boolean;
   emailSentAt?: string | null;
@@ -138,24 +137,6 @@ export interface AttendanceRecord {
   markedAt?: string;
 }
 
-export interface Certificate {
-  certificateId: string;
-  studentName: string;
-  organization: string;
-  institution: string;
-  eventDate: string;
-  eventDateLabel: string;
-  eventName: string;
-  issueDate: string;
-  issueDateLabel: string;
-  status: 'VALID' | 'REVOKED';
-  campaignName?: string;
-  participationStatus?: 'PARTICIPATED' | 'NOT_PARTICIPATED';
-  issuedBy?: string;
-  revokedAt?: string;
-  qrCode?: string;
-}
-
 export interface EventParticipant {
   registrationId: string;
   studentId: string;
@@ -167,25 +148,6 @@ export interface EventParticipant {
   college: string;
   registered: boolean;
   participation: 'PARTICIPATED' | 'NOT_PARTICIPATED';
-  certificate: {
-    certificateId: string;
-    status: 'VALID' | 'REVOKED';
-    eventDateLabel: string;
-  } | null;
-}
-
-export interface Campaign {
-  _id: string;
-  name: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  minimumAttendancePercentage: number;
-  minimumEligibleEvents: number;
-  releaseDate?: string;
-  certificateTemplate?: string;
-  status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
-  generatedAt?: string;
 }
 
 export interface Member {
@@ -244,25 +206,7 @@ export interface MemberSaveResponse {
   member: Member;
 }
 
-/** POST /api/admin/certificates/quick-generate request body */
-export interface QuickGenerateCertificateRequest {
-  studentName: string;
-  studentEmail?: string;
-  /** Real MongoDB Event _id — required, never an event name or business code. */
-  eventId: string;
-  eventName?: string;
-  eventDate?: string;
-  sendEmail?: boolean;
-}
 
-/** POST /api/admin/certificates/quick-generate response */
-export interface QuickGenerateCertificateResponse {
-  success: boolean;
-  message: string;
-  certificate: Certificate;
-  emailSent: boolean;
-  emailError?: string;
-}
 
 /** Row of GET /api/admin/events/:eventId/registrations */
 export interface EventRegistrationRow {
@@ -321,7 +265,6 @@ export interface DashboardStats {
   registered: number;
   attended: number;
   attendancePercent: number;
-  certificates: number;
 }
 
 export interface AdminStats {
@@ -331,9 +274,6 @@ export interface AdminStats {
   upcomingEvents: number;
   completedEvents: number;
   attendanceRecords: number;
-  certificates: number;
-  validCertificates: number;
-  pendingCertificates: number;
   members: number;
   eventsEmailSent?: number;
   totalResources?: number;

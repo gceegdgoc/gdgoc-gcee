@@ -7,7 +7,6 @@ import { generateOtpEmailHtml } from './email/templates/otp.template';
 import { generateWelcomeEmailHtml } from './email/templates/welcome.template';
 import { generateEventRegistrationEmailHtml } from './email/templates/eventRegistration.template';
 import { generateAnnouncementEmailHtml } from './email/templates/announcement.template';
-import { generateCertificateEmailHtml } from './email/templates/certificate.template';
 import {
   sendViaResend,
   isResendConfigured as isResendTransportConfigured,
@@ -521,21 +520,6 @@ export async function sendHackathonEmail(opts: {
     type: 'Hackathon',
     subject: `Hackathon Announcement: ${opts.title} – ${CLUB.name}`,
   });
-  return sendWebsiteEmail({ to: opts.to, subject, html, text });
-}
-
-/**
- * Certificate ready email.
- */
-export async function sendCertificateEmail(opts: {
-  to: string;
-  studentName?: string;
-  eventName?: string;
-  certificateId: string;
-  verificationUrl: string;
-  downloadUrl?: string;
-}): Promise<EmailSendResult> {
-  const { subject, html, text } = generateCertificateEmailHtml(opts);
   return sendWebsiteEmail({ to: opts.to, subject, html, text });
 }
 

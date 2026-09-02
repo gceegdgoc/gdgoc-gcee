@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Certificate, EventModel } from '../models';
+import { EventModel } from '../models';
 
 export function padNumber(n: number, length = 6): string {
   return String(n).padStart(length, '0');
@@ -21,19 +21,4 @@ export async function nextEventId(): Promise<string> {
     if (!Number.isNaN(num)) seq = num + 1;
   }
   return `${prefix}${padNumber(seq, 4)}`;
-}
-
-/** Generate certificateId like GDGCEE-20260818-A1B2 */
-export async function nextCertificateId(): Promise<string> {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const dateStr = `${year}${month}${day}`;
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let suffix = '';
-  for (let i = 0; i < 4; i++) {
-    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `GDGCEE-${dateStr}-${suffix}`;
 }

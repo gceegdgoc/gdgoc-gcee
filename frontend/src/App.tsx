@@ -13,8 +13,6 @@ import TeamMembers from './pages/public/TeamMembers';
 import Gallery from './pages/public/Gallery';
 import Resources from './pages/public/Resources';
 import Contact from './pages/public/Contact';
-import Certificates from './pages/public/Certificates';
-import VerifyCertificate from './pages/public/VerifyCertificate';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -22,7 +20,6 @@ import StudentDashboard from './pages/student/Dashboard';
 import StudentProfile from './pages/student/Profile';
 import StudentEvents from './pages/student/MyEvents';
 import StudentAttendance from './pages/student/MyAttendance';
-import StudentCertificates from './pages/student/MyCertificates';
 import StudentResources from './pages/student/StudentResources';
 import StudentSettings from './pages/student/Settings';
 
@@ -33,9 +30,6 @@ import AdminEventCreate from './pages/admin/AdminEventCreate';
 import AdminEventDetail from './pages/admin/AdminEventDetail';
 import AdminStudents from './pages/admin/AdminStudents';
 import AdminMembers from './pages/admin/AdminMembers';
-import AdminCertificates from './pages/admin/AdminCertificates';
-import AdminCampaigns from './pages/admin/AdminCampaigns';
-import AdminCampaignDetail from './pages/admin/AdminCampaignDetail';
 import AdminGallery from './pages/admin/AdminGallery';
 import AdminResources from './pages/admin/AdminResources';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -83,10 +77,6 @@ export default function App() {
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/certificates" element={<Certificates />} />
-        <Route path="/certificates/:certificateId" element={<VerifyCertificate />} />
-        <Route path="/verify/:certificateId" element={<VerifyCertificate />} />
-        <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
         <Route path="/login" element={<Login />} />
       </Route>
 
@@ -103,7 +93,6 @@ export default function App() {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="events" element={<StudentEvents />} />
         <Route path="attendance" element={<Navigate to="/dashboard/events" replace />} />
-        <Route path="certificates" element={<StudentCertificates />} />
         <Route path="resources" element={<StudentResources />} />
         <Route path="settings" element={<StudentSettings />} />
       </Route>
@@ -126,9 +115,6 @@ export default function App() {
         <Route path="events/:eventId/registrations" element={<AdminEventDetail />} />
         <Route path="students" element={<AdminStudents />} />
         <Route path="members" element={<AdminMembers />} />
-        <Route path="certificates" element={<AdminCertificates />} />
-        <Route path="certificate-campaigns" element={<AdminCampaigns />} />
-        <Route path="certificate-campaigns/:id" element={<AdminCampaignDetail />} />
         <Route path="gallery" element={<AdminGallery />} />
         <Route path="resources" element={<AdminResources />} />
         <Route path="form-registrations" element={<AdminFormRegistrations />} />

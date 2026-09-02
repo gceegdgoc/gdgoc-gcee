@@ -57,7 +57,6 @@ export function serializeEvent(event: any) {
     googleFormUrl: event.googleFormUrl || '',
     registrationLink: event.registrationLink || '',
     manualRegistrationCount: event.manualRegistrationCount || 0,
-    isCertificateEligible: event.isCertificateEligible,
     isInauguration: event.isInauguration,
     emailSent: event.emailSent || false,
     emailSentAt: event.emailSentAt || null,
@@ -693,7 +692,6 @@ export function normalizeEventPayload(body: any = {}) {
     googleFormUrl: asString(body.googleFormUrl || body.registrationUrl),
     registrationLink: asString(body.registrationLink),
     manualRegistrationCount: Math.max(0, asNumber(body.manualRegistrationCount, 0)),
-    isCertificateEligible: isInauguration ? false : asBool(body.isCertificateEligible, false),
     isInauguration,
     status,
   };

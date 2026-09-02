@@ -238,11 +238,6 @@ export function downloadBlob(data: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export function downloadPdf(certificateId: string) {
-  const base = import.meta.env.VITE_API_URL || '/api';
-  window.open(`${base}/certificates/${certificateId}/download`, '_blank');
-}
-
 export const EVENT_CATEGORIES = [
   'Workshop',
   'Hackathon',

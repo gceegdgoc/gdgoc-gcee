@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { env } from '../config/env';
 import { connectDB } from '../config/db';
 import { todayIST } from '../utils/dates';
-import { nextEventId, nextCertificateId } from '../utils/ids';
+import { nextEventId } from '../utils/ids';
 import { generateQRCodeDataURL } from '../utils/qr';
 import {
   Admin,
@@ -11,7 +11,6 @@ import {
   EventModel,
   Registration,
   Attendance,
-  CertificateCampaign,
   Member,
   GalleryItem,
   Resource,
@@ -97,7 +96,6 @@ async function seed() {
       category: 'Community Meetup',
       technologies: [],
       capacity: 200,
-      isCertificateEligible: false,
       isInauguration: true,
       status: 'COMPLETED',
     },
@@ -130,13 +128,12 @@ async function seed() {
       category: cats[i],
       technologies: techs[i],
       capacity: 120,
-      isCertificateEligible: true,
       isInauguration: false,
       status: 'COMPLETED',
     });
   }
 
-  // Upcoming (non-certificate) events for the dashboard/homepage
+  // Upcoming events for the dashboard/homepage
   eventSpec.push({
     eventId: await nextEventId(),
     title: 'Community Meetup & Tech Talk',
@@ -152,7 +149,6 @@ async function seed() {
     category: 'Community Meetup',
     technologies: [],
     capacity: 150,
-    isCertificateEligible: false,
     isInauguration: false,
     status: 'UPCOMING',
   });
@@ -171,7 +167,6 @@ async function seed() {
     category: 'Workshop',
     technologies: ['Kotlin', 'Jetpack Compose', 'Firebase'],
     capacity: 100,
-    isCertificateEligible: true,
     isInauguration: false,
     status: 'UPCOMING',
   });
@@ -181,7 +176,7 @@ async function seed() {
     let ev = await EventModel.findOne({ eventId: spec.eventId });
     if (!ev) ev = await EventModel.create(spec);
     events.push(ev);
-    console.log(`[seed] event: ${spec.eventId} — ${spec.title} (${spec.date}) ${spec.isInauguration ? '[INAUGURATION]' : spec.isCertificateEligible ? '[CERT ELIGIBLE]' : ''}`);
+    console.log(`[seed] event: ${spec.eventId} — ${spec.title} (${spec.date}) ${spec.isInauguration ? '[INAUGURATION]' : ''}`);
   }
 
   const inauguration = events[0];
@@ -233,24 +228,7 @@ async function seed() {
   }
   console.log('[seed] attendance seeded');
 
-  // ---- Certificate Campaign ----
-  const campaign = await CertificateCampaign.findOneAndUpdate(
-    { name: 'GDGoC GCEE 2026 Community Participation' },
-    {
-      $set: {
-        description: 'Consolidated certificate for participation in eligible GDGoC GCEE events.',
-        startDate: eligibleDates[0],
-        endDate: eligibleDates[eligibleDates.length - 1],
-        minimumAttendancePercentage: 75,
-        minimumEligibleEvents: 4,
-        releaseDate: shiftDate(today, 2),
-        certificateTemplate: 'default',
-        status: 'ACTIVE',
-      },
-    },
-    { upsert: true, new: true }
-  );
-  console.log(`[seed] campaign: ${campaign.name} (${eligibleDates[0]} → ${eligibleDates[eligibleDates.length - 1]})`);
+
 
   // ---- Members ----
   const teamSpec: Array<[string, string, string, string]> = [
@@ -324,7 +302,6 @@ async function seed() {
   console.log('\n[seed] done. Summary:');
   console.log('  Admin   :', adminEmail, '/', env.adminPassword);
   console.log('  Students: demo@gdgocgcee.in / student123  (attended 100%)');
-  console.log('  Campaign: GDGoC GCEE 2026 Community Participation');
   await mongoose.disconnect();
 }
 

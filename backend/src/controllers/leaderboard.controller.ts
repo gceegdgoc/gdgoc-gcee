@@ -10,7 +10,7 @@ const BONUS: Record<string, number> = {
   'Coding Session': 5,
 };
 
-/** Community participation leaderboard. Not the sole basis for certificates. */
+/** Community participation leaderboard. */
 export async function getLeaderboard(req: any, res: Response) {
   try {
     await connectDB();

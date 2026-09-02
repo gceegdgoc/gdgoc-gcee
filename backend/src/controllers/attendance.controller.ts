@@ -254,14 +254,7 @@ export async function qrMarkAttendance(req: AuthRequest, res: Response) {
       return;
     }
 
-    // 6. Inauguration events never count towards certificates (still recorded)
-    if (event.isInauguration) {
-      res.status(400).json({
-        success: false,
-        message: 'This is an inauguration event and does not contribute to certificate eligibility.',
-      });
-      return;
-    }
+
 
     // 7. Prevent duplicate attendance
     const existing = await Attendance.findOne({ studentId: student._id, eventId: event._id });

@@ -97,7 +97,6 @@ export default function MyAttendance() {
 
       <p className="rounded-xl bg-navy-50 p-4 text-xs leading-relaxed text-ink-muted">
         <strong>Note:</strong> Attendance for an event is valid only on the actual event date (Asia/Kolkata time).
-        Inauguration events are recorded but never count toward certificate eligibility.
       </p>
     </div>
   );

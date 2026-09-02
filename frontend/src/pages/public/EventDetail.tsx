@@ -7,7 +7,6 @@ import {
   Clock,
   MapPin,
   Users,
-  Award,
   ExternalLink,
   AlertTriangle,
   Building2,
@@ -136,11 +135,6 @@ export default function EventDetail() {
                 <span className="rounded bg-black px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-white">
                   {event.category}
                 </span>
-                {event.isCertificateEligible && (
-                  <span className="flex items-center gap-1 rounded bg-green-600 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-white">
-                    <Award className="h-3 w-3" /> Certificate
-                  </span>
-                )}
                 {event.isInauguration && (
                   <span className="flex items-center gap-1 rounded bg-yellow-500 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black">
                     Inauguration
@@ -210,7 +204,7 @@ export default function EventDetail() {
                       EVENT COMPLETED
                     </p>
                     <p className="mt-2 text-sm text-black/40">
-                      This event has finished. Photos, outcomes, and certificates will be updated soon.
+                      This event has finished. Photos and outcomes will be updated soon.
                     </p>
                   </div>
                 ) : isOngoing ? (
@@ -285,14 +279,7 @@ export default function EventDetail() {
                   {event.isInauguration && (
                     <div className="mt-4 flex items-start gap-2 rounded border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800">
                       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                      This is the inauguration event. It will not contribute to certificate eligibility.
-                    </div>
-                  )}
-
-                  {event.isCertificateEligible && (
-                    <div className="mt-3 flex items-start gap-2 rounded border border-green-200 bg-green-50 p-3 text-xs text-green-800">
-                      <Award className="mt-0.5 h-4 w-4 shrink-0" />
-                      Attending this event counts towards your participation certificate.
+                      This is the inauguration event.
                     </div>
                   )}
 

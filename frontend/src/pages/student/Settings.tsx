@@ -78,7 +78,7 @@ export default function Settings() {
       <div className="card p-6">
         <h2 className="font-display text-lg font-bold text-navy-900">Account</h2>
         <p className="mt-2 text-sm text-ink-muted">
-          Need help with your account or certificate queries? Reach the community team at{' '}
+          Need help with your account? Reach the community team at{' '}
           <a href={`mailto:${SITE_EMAIL}`} className="font-medium text-g-blue hover:underline">{SITE_EMAIL}</a>.
         </p>
       </div>

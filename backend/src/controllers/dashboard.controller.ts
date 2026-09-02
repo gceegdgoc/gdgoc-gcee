@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { Student, EventModel, Registration, Attendance, Certificate, CertificateCampaign, Member, GoogleFormRegistration, Resource } from '../models';
+import { Student, EventModel, Registration, Attendance, Member, GoogleFormRegistration, Resource } from '../models';
 import type { AuthRequest } from '../middleware/auth';
 import { todayIST, formatHumanDate } from '../utils/dates';
 import { connectDB } from '../config/db';
@@ -10,10 +10,9 @@ export async function studentDashboard(req: AuthRequest, res: Response) {
     await connectDB();
     const studentId = req.studentId;
 
-    const [registeredEvents, attendanceRecords, certificates] = await Promise.all([
+    const [registeredEvents, attendanceRecords] = await Promise.all([
       Registration.find({ studentId, status: 'REGISTERED' }).populate('eventId').lean(),
       Attendance.find({ studentId }).lean(),
-      Certificate.find({ studentId, status: 'VALID' }).lean(),
     ]);
 
     const attended = attendanceRecords.filter((a) => a.status === 'PRESENT').length;
@@ -31,7 +30,6 @@ export async function studentDashboard(req: AuthRequest, res: Response) {
       registered: registeredEvents.filter((r) => (r.eventId as any)?.status !== 'CANCELLED').length,
       attended,
       attendancePercent: 0,
-      certificates: certificates.length,
     };
 
     res.json({
@@ -48,7 +46,6 @@ export async function studentDashboard(req: AuthRequest, res: Response) {
         venue: e.venue,
         category: e.category,
         isInauguration: e.isInauguration,
-        isCertificateEligible: e.isCertificateEligible,
         banner: e.banner,
       })),
       recentAttendance: attendanceRecords
@@ -80,10 +77,7 @@ export async function adminDashboard(_: any, res: Response) {
       upcomingEvents,
       completedEvents,
       attendanceRecords,
-      certificates,
-      validCertificates,
       members,
-      campaigns,
       totalFormRegistrations,
       recentFormRegistrations,
       eventsEmailSent,
@@ -96,10 +90,7 @@ export async function adminDashboard(_: any, res: Response) {
       EventModel.countDocuments({ status: { $nin: ['COMPLETED', 'CANCELLED'] }, date: { $gte: today } }),
       EventModel.countDocuments({ $or: [{ status: 'COMPLETED' }, { status: { $nin: ['COMPLETED', 'CANCELLED'] }, date: { $lt: today } }] }),
       Attendance.countDocuments(),
-      Certificate.countDocuments(),
-      Certificate.countDocuments({ status: 'VALID' }),
       Member.countDocuments({ isActive: true }),
-      CertificateCampaign.find().sort({ createdAt: -1 }).lean(),
       GoogleFormRegistration.countDocuments(),
       GoogleFormRegistration.find().sort({ submittedAt: -1 }).limit(5).lean(),
       EventModel.countDocuments({ emailSent: true }),
@@ -148,11 +139,6 @@ export async function adminDashboard(_: any, res: Response) {
       { $sort: { count: -1 } },
     ]);
 
-    // Chart: certificate stats
-    const certByStatus = await Certificate.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } },
-    ]);
-
     // Chart: attendance per event (top 8)
     const attendanceByEvent = await Attendance.aggregate([
       { $match: { status: 'PRESENT' } },
@@ -185,9 +171,6 @@ export async function adminDashboard(_: any, res: Response) {
         upcomingEvents,
         completedEvents,
         attendanceRecords,
-        certificates,
-        validCertificates,
-        pendingCertificates: Math.max(certificates - validCertificates, 0),
         members,
         totalFormRegistrations,
         eventsEmailSent,
@@ -197,7 +180,6 @@ export async function adminDashboard(_: any, res: Response) {
         registrationTrends,
         attendanceTrends,
         participationByCategory,
-        certByStatus,
         attendanceByEvent,
         resourcesByCategory,
       },
@@ -219,7 +201,6 @@ export async function adminDashboard(_: any, res: Response) {
         uploadedBy: r.uploadedBy,
         createdAt: r.createdAt,
       })),
-      campaigns,
     });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

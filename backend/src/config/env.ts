@@ -41,7 +41,7 @@ if (forceDns.length > 0) {
 /**
  * The ONE canonical production URL for the public-facing GDGoC GCEE site.
  * Used as the final fallback when no environment variable overrides it.
- * All certificate verification links, QR codes, and email buttons are built
+ * All verification links, QR codes, and email buttons are built
  * from this URL — it must always point to the official production deployment.
  */
 const CANONICAL_PRODUCTION_URL = 'https://gdgoc-gcee.vercel.app';
@@ -90,24 +90,7 @@ export function getPublicAppUrl(): string {
   return devCandidate.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app').trim().replace(/\/+$/, '');
 }
 
-/**
- * The one true canonical URL for certificate links in emails.
- * Reads PUBLIC_APP_URL first, then falls back to CANONICAL_PRODUCTION_URL.
- * Use this (not getPublicAppUrl()) when building certificate verification
- * and download URLs so they always resolve to the correct production domain.
- */
-export function getCertificateBaseUrl(): string {
-  let explicit = process.env.PUBLIC_APP_URL || process.env.APP_URL || process.env.CLIENT_URL;
-  if (explicit && !explicit.includes('localhost') && !explicit.includes('127.0.0.1')) {
-    explicit = explicit.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app');
-    return explicit.trim().replace(/\/+$/, '');
-  }
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return CANONICAL_PRODUCTION_URL;
-  }
-  const dev = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
-  return dev.replace('gdgoc-gcee-clubs.vercel.app', 'gdgoc-gcee.vercel.app').trim().replace(/\/+$/, '');
-}
+
 
 /**
  * The ONE canonical registration link used by the REGISTER NOW button in every

@@ -423,7 +423,7 @@ export default function Register() {
           <div className="mt-6 grid grid-cols-3 gap-3 text-center text-xs">
             {[
               { emoji: '🎓', label: 'Free workshops & events' },
-              { emoji: '🏆', label: 'Hackathons & certificates' },
+              { emoji: '🏆', label: 'Hackathons & contests' },
               { emoji: '🤝', label: 'Developer community' },
             ].map(({ emoji, label }) => (
               <div key={label} className="rounded-xl border border-navy-100 bg-white p-3 text-ink-muted shadow-card">

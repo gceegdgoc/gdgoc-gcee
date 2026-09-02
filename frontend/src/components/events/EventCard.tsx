@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, MapPin, Clock, Users, Award, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { CalendarDays, MapPin, Clock, Users, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { GEvent } from '../../types';
 import { cn, formatHumanDate, isEventRegistrationOpen, getEffectiveEventStatus } from '../../lib/utils';
 import { StatusBadge } from '../ui/Badge';
@@ -80,11 +80,6 @@ export function EventCard({
             >
               {event.category}
             </span>
-            {event.isCertificateEligible && (
-              <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
-                <Award className="h-3 w-3" /> Cert
-              </span>
-            )}
             {event.isInauguration && (
               <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
                 <Sparkles className="h-3 w-3" /> Inauguration
