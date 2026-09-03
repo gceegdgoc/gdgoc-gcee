@@ -42,10 +42,10 @@ export function getResendFromEmail(): string {
 }
 
 export function getResendFromName(): string {
-  return (process.env.RESEND_FROM_NAME || env.resendFromName || 'GDGoC GCEE').trim();
+  return (process.env.RESEND_FROM_NAME || env.resendFromName || 'GCEE Tech Hub').trim();
 }
 
-/** RFC-5322 friendly From header, e.g. `GDGoC GCEE <noreply@gdgocgcee.in>`. */
+/** RFC-5322 friendly From header, e.g. `GCEE Tech Hub <noreply@gceetechhub.in>`. */
 export function getResendFromAddress(): string {
   return `${getResendFromName()} <${getResendFromEmail()}>`;
 }

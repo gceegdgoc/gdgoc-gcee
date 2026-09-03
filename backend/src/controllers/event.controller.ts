@@ -162,7 +162,7 @@ export async function checkMemberEligibility(req: Request, res: Response) {
       res.json({
         success: false,
         isMember: false,
-        message: 'Please join GDGoC GCEE before registering for this event.',
+        message: 'Please join GCEE Tech Hub before registering for this event.',
         joinUrl: `/join?redirect=/events/${event.eventId}/register`,
       });
       return;
@@ -173,7 +173,7 @@ export async function checkMemberEligibility(req: Request, res: Response) {
         success: false,
         isMember: false,
         notVerified: true,
-        message: 'Please verify your GDGoC GCEE account email before registering for this event.',
+        message: 'Please verify your GCEE Tech Hub account email before registering for this event.',
         verifyUrl: '/join',
       });
       return;
@@ -974,7 +974,7 @@ export async function sendEventRegistrationEmailToStudents(req: any, res: Respon
 
     const regUrl = EMAIL_REGISTRATION_URL;
 
-    const subject = `You're Invited! ${event.title} – GDGoC GCEE`;
+    const subject = `You're Invited! ${event.title} – GCEE Tech Hub`;
     const eventName = safeString(event.title) || safeString(event.eventId);
     const batchStartedAt = new Date();
     // Exact number of eligible recipients — stored on every history record.

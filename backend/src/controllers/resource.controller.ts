@@ -11,7 +11,7 @@ function serialize(r: any) {
     url: r.url || r.link || '',
     category: r.category,
     type: r.type || 'link',
-    uploadedBy: r.uploadedBy || 'GDGoC GCEE',
+    uploadedBy: r.uploadedBy || 'GCEE Tech Hub',
     createdAt: r.createdAt,
   };
 }
@@ -52,7 +52,7 @@ export function normalizeResourcePayload(body: any = {}) {
     url: link,
     category: asTrimmedString(body.category) || 'Other',
     type: asTrimmedString(body.type) || 'link',
-    uploadedBy: asTrimmedString(body.uploadedBy) || 'GDGoC GCEE',
+    uploadedBy: asTrimmedString(body.uploadedBy) || 'GCEE Tech Hub',
   };
 }
 

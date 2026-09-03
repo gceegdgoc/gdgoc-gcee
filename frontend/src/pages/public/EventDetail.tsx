@@ -265,7 +265,7 @@ export default function EventDetail() {
                     <InfoRow icon={CalendarDays} label="Date" value={formatHumanDate(event.date)} />
                     <InfoRow icon={Clock} label="Time" value={event.time || 'TBA'} />
                     <InfoRow icon={MapPin} label="Venue" value={event.venue || 'TBA'} />
-                    <InfoRow icon={Building2} label="Organizer" value="GDGoC GCEE" />
+                    <InfoRow icon={Building2} label="Organizer" value="GCEE Tech Hub" />
                     <InfoRow icon={Users} label="Registered" value={`${totalRegistered}`} />
                   </div>
                 </div>

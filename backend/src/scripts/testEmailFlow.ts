@@ -1,5 +1,5 @@
 /**
- * GDGoC GCEE — Email System Verification (development only)
+ * GCEE Tech Hub — Email System Verification (development only)
  *
  * Run: npm run test:email --prefix backend
  *
@@ -51,12 +51,12 @@ async function testA(): Promise<boolean> {
   console.log(`Sending branded test email to ${to}…`);
   const sent = await sendGmailEmail({
     to,
-    subject: '[GDGoC GCEE] Test A — Nodemailer + Gmail SMTP works',
+    subject: '[GCEE Tech Hub] Test A — Nodemailer + Gmail SMTP works',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
         <div style="background:#0b1b33;padding:18px 24px;color:#fff;">
-          <h2 style="margin:0;font-size:18px;">GDGoC GCEE</h2>
-          <p style="margin:4px 0 0 0;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;">Google Developer Groups on Campus</p>
+          <h2 style="margin:0;font-size:18px;">GCEE Tech Hub</h2>
+          <p style="margin:4px 0 0 0;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;">GCEE Tech Hub</p>
         </div>
         <div style="padding:24px;">
           <p style="margin-top:0;color:#374151;"><strong>Test A passed.</strong> Normal website emails are being delivered through Nodemailer over Gmail SMTP.</p>
@@ -119,7 +119,7 @@ async function testB(): Promise<boolean> {
 }
 
 async function run() {
-  console.log('\nGDGoC GCEE — Email System Verification\n');
+  console.log('\nGCEE Tech Hub — Email System Verification\n');
   const suite = (process.env.TEST_SUITE || 'all').toLowerCase();
 
   let okA = true;

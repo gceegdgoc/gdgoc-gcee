@@ -52,7 +52,7 @@ export default function AdminLogin() {
             <ShieldCheck className="h-7 w-7" />
           </div>
           <h1 className="font-display text-2xl font-bold text-white">Admin Portal</h1>
-          <p className="mt-1 text-sm text-white/60">Restricted access — GDGoC GCEE administrators only.</p>
+          <p className="mt-1 text-sm text-white/60">Restricted access — GCEE Tech Hub administrators only.</p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-md sm:p-9">

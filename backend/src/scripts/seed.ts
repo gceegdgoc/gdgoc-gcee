@@ -51,10 +51,10 @@ async function seed() {
 
   // ---- Students ----
   const studentsSpec: Array<[string, string, string]> = [
-    ['Demo Student', 'demo@gdgocgcee.in', '2021CSE001'],
-    ['Student Two', 'student@gdgocgcee.in', '2022ECE002'],
-    ['Student Three', 'participant@gdgocgcee.in', '2023MEC003'],
-    ['Student Four', 'learner@gdgocgcee.in', '2024CSE004'],
+    ['Demo Student', 'demo@gceetechhub.in', '2021CSE001'],
+    ['Student Two', 'student@gceetechhub.in', '2022ECE002'],
+    ['Student Three', 'participant@gceetechhub.in', '2023MEC003'],
+    ['Student Four', 'learner@gceetechhub.in', '2024CSE004'],
   ];
   const students: any[] = [];
   for (const [name, email, roll] of studentsSpec) {
@@ -69,7 +69,7 @@ async function seed() {
         year: 'III',
         college: 'Government College of Engineering, Erode',
         passwordHash: await bcrypt.hash('student123', 10),
-        bio: 'Active GDGoC GCEE community member.',
+        bio: 'Active GCEE Tech Hub community member.',
       });
     }
     students.push(st);
@@ -83,9 +83,9 @@ async function seed() {
   const eventSpec: any[] = [
     {
       eventId: await nextEventId(),
-      title: 'GDGoC GCEE Inauguration',
-      shortDescription: 'Official launch of GDGoC on Campus at GCEE.',
-      description: 'Join us as we officially launch Google Developer Groups on Campus at Government College of Engineering, Erode. Meet the core team, learn about the roadmap, and be part of the community from day one.',
+      title: 'GCEE Tech Hub Inauguration',
+      shortDescription: 'Official launch of GCEE Tech Hub at GCEE.',
+      description: 'Join us as we officially launch GCEE Tech Hub at Government College of Engineering, Erode. Meet the core team, learn about the roadmap, and be part of the community from day one.',
       banner: svgImage('#4285F4', 'Inauguration'),
       date: inaugurationDate,
       startTime: '10:00',
@@ -117,7 +117,7 @@ async function seed() {
       eventId: await nextEventId(),
       title: titles[i],
       shortDescription: `Hands-on ${cats[i].toLowerCase()} session.`,
-      description: `A practical ${cats[i].toLowerCase()} covering real-world skills, tooling and best practices. Open to all GDGoC GCEE members.`,
+      description: `A practical ${cats[i].toLowerCase()} covering real-world skills, tooling and best practices. Open to all GCEE Tech Hub members.`,
       banner: svgImage(['#34A853', '#FBBC05', '#EA4335', '#4285F4', '#34A853'][i], titles[i].split(':')[0]),
       date: eligibleDates[i],
       startTime: '14:00',
@@ -144,7 +144,7 @@ async function seed() {
     startTime: '16:00',
     endTime: '18:00',
     venue: 'Library Auditorium',
-    speaker: 'GDGoC GCEE',
+    speaker: 'GCEE Tech Hub',
     speakerBio: 'Community',
     category: 'Community Meetup',
     technologies: [],
@@ -242,7 +242,7 @@ async function seed() {
     ['Vignesh Raja', 'Community Members', 'Member', 'EEE'],
   ];
   for (const [name, team, role, dept] of teamSpec) {
-    const email = `${name.toLowerCase().replace(/\s+/g, '')}@gdgocgcee.in`;
+    const email = `${name.toLowerCase().replace(/\s+/g, '')}@gceetechhub.in`;
     const registerNumber = `REG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
     await Member.findOneAndUpdate(
       { name },
@@ -293,7 +293,7 @@ async function seed() {
   for (const [title, desc, url, cat] of resourceSpec) {
     await Resource.findOneAndUpdate(
       { title },
-      { $set: { title, description: desc, url, category: cat, uploadedBy: 'GDGoC GCEE' } },
+      { $set: { title, description: desc, url, category: cat, uploadedBy: 'GCEE Tech Hub' } },
       { upsert: true }
     );
   }
@@ -301,7 +301,7 @@ async function seed() {
 
   console.log('\n[seed] done. Summary:');
   console.log('  Admin   :', adminEmail, '/', env.adminPassword);
-  console.log('  Students: demo@gdgocgcee.in / student123  (attended 100%)');
+  console.log('  Students: demo@gceetechhub.in / student123  (attended 100%)');
   await mongoose.disconnect();
 }
 

@@ -39,7 +39,7 @@ export function baseEmailHtml(content: string, previewText?: string): string {
                 <tr>
                   <td>
                     <h1 style="margin:0; color:#ffffff; font-size:22px; font-weight:800; letter-spacing:-0.5px; line-height:1.2;">${CLUB.name}</h1>
-                    <p style="margin:6px 0 0 0; color:#94a3b8; font-size:11px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">Google Developer Groups on Campus</p>
+                    <p style="margin:6px 0 0 0; color:#94a3b8; font-size:11px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">GCEE Tech Hub</p>
                     <p style="margin:2px 0 0 0; color:#64748b; font-size:11px;">${CLUB.institution}</p>
                   </td>
                 </tr>
@@ -59,7 +59,7 @@ export function baseEmailHtml(content: string, previewText?: string): string {
                 <a href="mailto:${SITE_EMAIL}" style="color:#64748b; text-decoration:none;">${SITE_EMAIL}</a>
               </p>
               <p style="margin:10px 0 0 0; color:#94a3b8; font-size:11px;">
-                This is an official communication from GDGoC GCEE.
+                This is an official communication from GCEE Tech Hub.
               </p>
             </td>
           </tr>

@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 
 export function Logo({ light = false, to = '/' }: { light?: boolean; to?: string }) {
   return (
-    <Link to={to} className="group flex items-center gap-2.5" aria-label="GDGoC GCEE home">
+    <Link to={to} className="group flex items-center gap-2.5" aria-label="GCEE Tech Hub home">
       <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900 shadow-card">
         <span className="font-display text-lg font-bold text-white">G</span>
         <span className="absolute inset-x-1.5 bottom-1 flex gap-[3px]">
@@ -15,7 +15,7 @@ export function Logo({ light = false, to = '/' }: { light?: boolean; to?: string
       </div>
       <div className="leading-tight">
         <p className={cn('font-display text-base font-bold tracking-tight', light ? 'text-white' : 'text-navy-900')}>
-          GDGoC <span className="text-g-blue">GCEE</span>
+          GCEE <span className="text-g-blue">Tech Hub</span>
         </p>
         <p className={cn('text-[10px] font-medium tracking-wide', light ? 'text-white/60' : 'text-ink-muted')}>
           Government College of Engineering, Erode

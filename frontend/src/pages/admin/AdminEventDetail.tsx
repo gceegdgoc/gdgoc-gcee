@@ -160,7 +160,7 @@ export default function AdminEventDetail() {
 
 function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => void }) {
   const [recipientType, setRecipientType] = useState<'ALL_STUDENTS' | 'REGISTERED_STUDENTS' | 'SELECTED_STUDENTS'>('ALL_STUDENTS');
-  const [customSubject, setCustomSubject] = useState(`Official Invitation: ${event.title} – GDGoC GCEE`);
+  const [customSubject, setCustomSubject] = useState(`Official Invitation: ${event.title} – GCEE Tech Hub`);
   const [customMessage, setCustomMessage] = useState('');
   const [posterUrl, setPosterUrl] = useState(event.banner || (event as any).posterUrl || (event as any).poster || '');
   const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
@@ -284,7 +284,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
                 />
                 <div>
                   <p className="text-sm font-semibold text-navy-900">All Verified Students</p>
-                  <p className="text-xs text-ink-muted">Broadcast to all registered GDGoC GCEE members.</p>
+                  <p className="text-xs text-ink-muted">Broadcast to all registered GCEE Tech Hub members.</p>
                 </div>
               </label>
 
@@ -326,7 +326,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
               className="input font-medium"
               value={customSubject}
               onChange={(e) => setCustomSubject(e.target.value)}
-              placeholder="e.g. Official Invitation: Web Dev Workshop – GDGoC GCEE"
+              placeholder="e.g. Official Invitation: Web Dev Workshop – GCEE Tech Hub"
             />
           </div>
 
@@ -469,7 +469,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
         <div className="rounded-xl border border-navy-100 bg-white p-6">
           <div className="mx-auto max-w-md space-y-4">
             <div className="rounded-lg bg-navy-950 p-4 text-white">
-              <h4 className="font-bold">GDGoC GCEE</h4>
+              <h4 className="font-bold">GCEE Tech Hub</h4>
               <p className="text-[10px] uppercase tracking-wider text-white/60">Government College of Engineering, Erode</p>
             </div>
 
@@ -499,7 +499,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
 
             <div className="text-center pt-2">
               <a
-                href={`https://gdgoc-gcee.vercel.app/events/${event.eventId}`}
+                href={`/events/${event.eventId}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-lg bg-g-blue px-6 py-2.5 text-xs font-bold uppercase text-white shadow-md"
@@ -509,7 +509,7 @@ function EventEmailSection({ event, onSent }: { event: GEvent; onSent: () => voi
             </div>
 
             <p className="text-center text-[10px] leading-relaxed text-ink-muted pt-2 border-t border-navy-50">
-              GDGoC GCEE Executive Committee · Government College of Engineering, Erode
+              GCEE Tech Hub Executive Committee · Government College of Engineering, Erode
             </p>
           </div>
         </div>

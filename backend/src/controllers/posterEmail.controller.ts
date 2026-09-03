@@ -9,7 +9,7 @@ import { baseEmailHtml } from '../services/email/templates/base.template.js';
 const CANONICAL_DOMAIN = 'https://gdgoc-gcee.vercel.app';
 
 /**
- * Generate Responsive Poster Email Template with GDGoC GCEE branding & CTA
+ * Generate Responsive Poster Email Template with GCEE Tech Hub branding & CTA
  */
 export function generatePosterEmailHtml(opts: {
   studentName?: string;

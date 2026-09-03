@@ -23,7 +23,7 @@ export function generateAnnouncementEmailHtml(opts: AnnouncementEmailOptions): {
   const date = escapeHtml(opts.date || 'TBA');
   const time = escapeHtml(opts.time || 'TBA');
   const venue = escapeHtml(opts.venue || CLUB.institution);
-  const subject = opts.subject || `[GDGoC GCEE] ${opts.title}`;
+  const subject = opts.subject || `[GCEE Tech Hub] ${opts.title}`;
   // The REGISTER NOW button always points to the official site URL.
   // Any registrationLink supplied by callers/event data may be stale or point
   // at a broken deployment, so it is intentionally ignored here.
@@ -104,7 +104,7 @@ Venue: ${opts.venue || CLUB.institution}
 Register here: ${regUrl}
 
 Best regards,
-GDGoC GCEE Team`;
+GCEE Tech Hub Team`;
 
   return {
     subject,

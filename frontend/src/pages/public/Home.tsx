@@ -115,13 +115,13 @@ export default function Home() {
             <div>
               <div className="mb-4 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-g-green" />
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-g-green">About GDGoC</span>
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-g-green">About GCEE Tech Hub</span>
               </div>
               <h2 className="font-display text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
                 A student developer community at GCEE
               </h2>
               <p className="mt-4 text-base leading-relaxed text-ink-muted">
-                GDGoC on Campus brings together students passionate about technology — from web and AI/ML to cloud,
+                GCEE Tech Hub brings together students passionate about technology — from web and AI/ML to cloud,
                 open source and developer tools. We learn together, build together and grow into confident developers.
               </p>
               <ul className="mt-6 space-y-3">
@@ -298,7 +298,7 @@ export default function Home() {
         <div className="container-x">
           <Reveal>
             <SectionHeading
-              eyebrow="Why GDGoC GCEE"
+              eyebrow="Why GCEE Tech Hub"
               title="Why join the community?"
               subtitle="Build skills, ship projects and grow with people who love to build."
             />
@@ -349,7 +349,7 @@ export default function Home() {
             <SectionHeading
               eyebrow="Meet the community"
               title="Community members"
-              subtitle="A few of the passionate developers behind GDGoC GCEE."
+              subtitle="A few of the passionate developers behind GCEE Tech Hub."
             />
           </Reveal>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -444,7 +444,7 @@ export default function Home() {
               Ready to build with us?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base text-white/70">
-              Join GDGoC GCEE and be part of a community that learns, builds and innovates together.
+              Join GCEE Tech Hub and be part of a community that learns, builds and innovates together.
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Link to="/join" className="btn-primary !px-6 !py-3 text-base">

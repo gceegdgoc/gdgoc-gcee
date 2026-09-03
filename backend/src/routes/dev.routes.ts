@@ -56,18 +56,18 @@ router.post('/test-email', devTestLimiter, async (req: Request, res: Response) =
     if (auth.ok) {
       sendResult = await sendGmailEmail({
         to,
-        subject: '[GDGoC GCEE] Gmail SMTP Test A — Nodemailer connection OK',
+        subject: '[GCEE Tech Hub] Gmail SMTP Test A — Nodemailer connection OK',
         html: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
             <div style="background:#0b1b33;padding:18px 24px;border-radius:12px 12px 0 0;color:#fff;">
-              <h2 style="margin:0;font-size:18px;">GDGoC GCEE — Test A</h2>
+              <h2 style="margin:0;font-size:18px;">GCEE Tech Hub — Test A</h2>
             </div>
             <div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:24px;">
               <p style="margin-top:0;color:#374151;">Gmail SMTP (Nodemailer) is working correctly.</p>
               <p style="color:#64748b;font-size:13px;">Sent at ${new Date().toISOString()} to ${to}.</p>
             </div>
           </div>`,
-        text: 'GDGoC GCEE — Test A: Gmail SMTP (Nodemailer) is working correctly.',
+        text: 'GCEE Tech Hub — Test A: Gmail SMTP (Nodemailer) is working correctly.',
       });
     }
     results.testA_gmailSmtp = {

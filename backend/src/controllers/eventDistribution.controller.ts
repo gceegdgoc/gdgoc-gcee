@@ -19,8 +19,8 @@ function escapeHtml(value: unknown): string {
 
 function getFromAddress(): string {
   const status = getEmailConfigStatus();
-  if (status.fromEmail) return `GDGoC GCEE <${status.fromEmail}>`;
-  return `GDGoC GCEE <${SITE_EMAIL}>`;
+  if (status.fromEmail) return `GCEE Tech Hub <${status.fromEmail}>`;
+  return `GCEE Tech Hub <${SITE_EMAIL}>`;
 }
 
 // Helper to fetch all registered students for an event
@@ -303,14 +303,14 @@ export async function sendEventEmails(req: any, res: Response) {
       const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
         <div style="background:#0b1b33; padding: 18px 24px; color:#fff;">
-          <h2 style="margin:0; font-size:18px;">GDGoC GCEE</h2>
+          <h2 style="margin:0; font-size:18px;">GCEE Tech Hub</h2>
         </div>
         <div style="padding: 24px;">
           <p style="margin-top:0; color:#374151;">Dear <strong>${safeName}</strong>,</p>
           <p style="color:#374151;">${safeMessage}</p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;" />
           <p style="color:#9aa5b1;font-size:12px;">${escapeHtml(event.title)} — ${event.date}</p>
-          <p style="color:#9aa5b1;font-size:12px;">GDGoC GCEE · Government College of Engineering, Erode</p>
+          <p style="color:#9aa5b1;font-size:12px;">GCEE Tech Hub · Government College of Engineering, Erode</p>
         </div>
       </div>`;
 
@@ -318,7 +318,7 @@ export async function sendEventEmails(req: any, res: Response) {
         const { data, error } = await gmailMailer.emails.send({
           from: fromAddress,
           to: student.email,
-          subject: `[GDGoC GCEE] ${subject}`,
+          subject: `[GCEE Tech Hub] ${subject}`,
           html,
         });
 

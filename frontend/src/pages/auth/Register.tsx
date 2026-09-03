@@ -108,7 +108,7 @@ export default function Register() {
     setOtpVerifying(true);
     try {
       await verifyOtp(form.email, otp);
-      toast.success('Email verified! Welcome to GDGoC GCEE!');
+      toast.success('Email verified! Welcome to GCEE Tech Hub!');
       if (redirectUrl) {
         navigate(redirectUrl);
       } else {
@@ -138,13 +138,13 @@ export default function Register() {
             Community Registration
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Join GDGoC{' '}
+            Join GCEE{' '}
             <span className="bg-gradient-to-r from-g-blue via-g-green to-g-yellow bg-clip-text text-transparent">
-              GCEE
+              Tech Hub
             </span>
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm text-white/60">
-            Become part of the Google Developer Groups on Campus community at Government College of Engineering, Erode.
+            Become part of the GCEE Tech Hub community at Government College of Engineering, Erode.
           </p>
         </div>
         <div className="relative z-10 mt-10 flex h-1">

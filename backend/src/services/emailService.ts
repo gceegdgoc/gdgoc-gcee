@@ -14,7 +14,7 @@ import {
 } from './email/resend';
 
 /**
- * GDGoC GCEE — central email service.
+ * GCEE Tech Hub — central email service.
  *
  * ALL website emails are dispatched through ONE central function
  * (`sendWebsiteEmail`) which routes every message server-side:
@@ -267,7 +267,7 @@ export interface ContactEmailOptions {
 }
 
 /**
- * Send Contact Us notification to the GDGoC GCEE team via Gmail SMTP (Nodemailer).
+ * Send Contact Us notification to the GCEE Tech Hub team via Gmail SMTP (Nodemailer).
  */
 export async function sendContactUsNotification(opts: ContactEmailOptions): Promise<EmailSendResult> {
   const cleanEmail = (opts.email || '').trim().toLowerCase();

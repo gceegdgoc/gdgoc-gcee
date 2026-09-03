@@ -23,7 +23,7 @@ export async function exportEventRegistrations(req: any, res: Response) {
     const attMap = new Map(attendanceRecords.map((a) => [String(a.studentId), a]));
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'GDGoC GCEE';
+    workbook.creator = 'GCEE Tech Hub';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet('Registrations');
@@ -97,7 +97,7 @@ export async function exportStudents(_: any, res: Response) {
     const regMap = new Map(registrationCounts.map((r) => [String(r._id), r.count]));
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'GDGoC GCEE';
+    workbook.creator = 'GCEE Tech Hub';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet('Students');

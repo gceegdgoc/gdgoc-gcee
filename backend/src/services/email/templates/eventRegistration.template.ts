@@ -104,7 +104,7 @@ ${opts.instructions ? `Instructions: ${opts.instructions}\n\n` : ''}
 Please keep this email and Registration ID handy for check-in.
 
 Best regards,
-GDGoC GCEE Team`;
+GCEE Tech Hub Team`;
 
   return {
     subject,

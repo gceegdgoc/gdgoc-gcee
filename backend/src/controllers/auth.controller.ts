@@ -409,7 +409,7 @@ export async function verifyOtp(req: AuthRequest, res: Response) {
     res.json({
       success: true,
       verified: true,
-      message: 'Email verified successfully! Welcome to GDGoC GCEE.',
+      message: 'Email verified successfully! Welcome to GCEE Tech Hub.',
       token,
       student: publicStudent(updated),
     });

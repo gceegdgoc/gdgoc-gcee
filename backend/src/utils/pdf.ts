@@ -41,8 +41,8 @@ export async function generateRegistrationListPDFBuffer(opts: {
   // Header band
   doc.rect(0, 0, doc.page.width, 88).fill(NAVY);
 
-  doc.font('Helvetica-Bold').fontSize(16).fillColor('#ffffff').text('GDGoC GCEE', 36, 18, { width: W });
-  doc.font('Helvetica').fontSize(9.5).fillColor('#94a3b8').text('Google Developer Groups on Campus — Government College of Engineering, Erode', 36, 38, { width: W });
+  doc.font('Helvetica-Bold').fontSize(16).fillColor('#ffffff').text('GCEE Tech Hub', 36, 18, { width: W });
+  doc.font('Helvetica').fontSize(9.5).fillColor('#94a3b8').text('GCEE Tech Hub — Government College of Engineering, Erode', 36, 38, { width: W });
   doc.font('Helvetica-Bold').fontSize(11).fillColor('#38bdf8').text('STUDENT REGISTRATION REPORT', 36, 56, { width: W });
   doc.font('Helvetica').fontSize(8).fillColor('#cbd5e1').text(`Generated: ${generatedTime} IST`, 36, 70, { width: W, align: 'right' });
 
@@ -86,7 +86,7 @@ export async function generateRegistrationListPDFBuffer(opts: {
       doc.addPage();
       y = 36;
       doc.rect(0, 0, doc.page.width, 30).fill(NAVY);
-      doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text(`GDGoC GCEE — ${opts.eventName} (Registration List)`, 36, 10, { width: W });
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text(`GCEE Tech Hub — ${opts.eventName} (Registration List)`, 36, 10, { width: W });
       y = 44;
       y = drawTableHeader(y);
     }
@@ -113,7 +113,7 @@ export async function generateRegistrationListPDFBuffer(opts: {
     doc.switchToPage(i);
     doc.moveTo(36, 800).lineTo(36 + W, 800).lineWidth(0.5).stroke('#cbd5e1');
     doc.font('Helvetica').fontSize(7.5).fillColor('#64748b');
-    doc.text('GDGoC GCEE — Google Developer Groups on Campus, Government College of Engineering, Erode', 36, 808, { width: W / 2 + 100 });
+    doc.text('GCEE Tech Hub — Government College of Engineering, Erode', 36, 808, { width: W / 2 + 100 });
     doc.text(`Page ${i + 1} of ${pageRange.count}`, 36, 808, { width: W, align: 'right' });
   }
 

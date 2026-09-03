@@ -35,7 +35,7 @@ const resourceSchema = new Schema<IResource>(
     url: { type: String, default: '' },
     category: { type: String, enum: RESOURCE_CATEGORIES, default: 'Other' },
     type: { type: String, default: 'link' },
-    uploadedBy: { type: String, default: 'GDGoC GCEE' },
+    uploadedBy: { type: String, default: 'GCEE Tech Hub' },
   },
   { timestamps: true }
 );

@@ -50,7 +50,7 @@ export default function Dashboard() {
         <h1 className="font-display text-2xl font-bold text-navy-900 sm:text-3xl">
           Welcome back, {student?.name?.split(' ')[0] || 'Developer'} 👋
         </h1>
-        <p className="mt-1 text-sm text-ink-muted">Here's what's happening in your GDGoC GCEE community.</p>
+        <p className="mt-1 text-sm text-ink-muted">Here's what's happening in your GCEE Tech Hub community.</p>
       </div>
 
       {/* Stats */}

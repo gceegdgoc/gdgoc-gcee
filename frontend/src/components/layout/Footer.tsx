@@ -36,7 +36,7 @@ export function Footer() {
         <div className="lg:col-span-2">
           <Logo light />
           <p className="mt-4 max-w-md text-sm leading-relaxed text-white/60">
-            Google Developer Groups on Campus — Government College of Engineering, Erode. A student developer
+            GCEE Tech Hub — Government College of Engineering, Erode. A student developer
             community built to learn, build and innovate together.
           </p>
           <div className="mt-5 flex gap-3">
@@ -76,7 +76,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col items-center justify-between gap-3 py-6 text-center text-xs text-white/40 sm:flex-row sm:text-left">
-          <p>© {new Date().getFullYear()} GDGoC on Campus — Government College of Engineering, Erode.</p>
+          <p>© {new Date().getFullYear()} GCEE Tech Hub — Government College of Engineering, Erode.</p>
           <p className="flex items-center gap-3">
             <Link to="/admin/login" className="transition hover:text-white/70">Admin</Link>
             <span className="text-white/20">|</span>

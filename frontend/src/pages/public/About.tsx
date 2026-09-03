@@ -74,7 +74,7 @@ export default function About() {
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-white/70">
-            Google Developer Groups on Campus — a student-run community empowering peers with practical developer skills.
+            GCEE Tech Hub — a student-run community empowering peers with practical developer skills.
           </p>
         </div>
         <div className="relative z-10 mt-10 flex h-1.5">
@@ -91,7 +91,7 @@ export default function About() {
           <Reveal>
             <SectionHeading align="left" eyebrow="Who we are" title="Students building students" />
             <p className="text-base leading-relaxed text-ink-muted">
-              GDGoC on Campus at Government College of Engineering, Erode is a community of students passionate about
+              GCEE Tech Hub at Government College of Engineering, Erode is a community of students passionate about
               technology. We organize workshops, hackathons, technical talks and hands-on sessions — all run by
               students, for students.
             </p>
@@ -182,7 +182,7 @@ export default function About() {
             <SectionHeading
               eyebrow="For students"
               title="Benefits of being a member"
-              subtitle="Everything you gain by being an active part of GDGoC GCEE."
+              subtitle="Everything you gain by being an active part of GCEE Tech Hub."
             />
           </Reveal>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

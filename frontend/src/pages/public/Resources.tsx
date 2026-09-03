@@ -39,7 +39,7 @@ export default function Resources() {
           <span className="chip border border-white/15 bg-white/5 text-white/80">Learning Hub</span>
           <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">Resources</h1>
           <p className="mx-auto mt-4 max-w-xl text-sm text-white/70 sm:text-base">
-            Curated links and materials shared by the GDGoC GCEE community.
+            Curated links and materials shared by the GCEE Tech Hub community.
           </p>
           <div className="mx-auto mt-8 flex max-w-md items-center gap-2 rounded-xl border border-white/15 bg-white/5 p-1.5 backdrop-blur-sm">
             <Search className="ml-2 h-4 w-4 shrink-0 text-white/50" />
@@ -105,7 +105,7 @@ export default function Resources() {
                   {res.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{res.description}</p>}
                   <div className="mt-auto pt-4">
                     <p className="text-xs text-ink-faint">
-                      Shared by {res.uploadedBy || 'GDGoC GCEE'} ·{' '}
+                      Shared by {res.uploadedBy || 'GCEE Tech Hub'} ·{' '}
                       {res.createdAt ? new Date(res.createdAt).toLocaleDateString('en-IN') : ''}
                     </p>
                   </div>

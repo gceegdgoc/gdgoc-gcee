@@ -101,7 +101,7 @@ export default function EventRegister() {
         toast.success(`Verified member: ${res.data.student.name}`);
       } else {
         setNotMemberMessage(
-          res.data.message || 'Please join GDGoC GCEE before registering for this event.'
+          res.data.message || 'Please join GCEE Tech Hub before registering for this event.'
         );
       }
     } catch (err) {
@@ -215,7 +215,7 @@ export default function EventRegister() {
                 {event.category}
               </span>
               <span className="rounded bg-navy-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-navy-800">
-                GDGoC GCEE
+                GCEE Tech Hub
               </span>
             </div>
 
@@ -251,7 +251,7 @@ export default function EventRegister() {
                 Student Membership Verification
               </h2>
               <p className="text-xs text-ink-muted">
-                Only verified GDGoC GCEE community members can register for this event.
+                Only verified GCEE Tech Hub community members can register for this event.
               </p>
             </div>
           </div>
@@ -308,14 +308,14 @@ export default function EventRegister() {
                           {notMemberMessage}
                         </p>
                         <p className="mt-2 text-xs text-ink-muted">
-                          You must first become a community member before you can register for GDGoC GCEE workshops and events.
+                          You must first become a community member before you can register for GCEE Tech Hub workshops and events.
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2">
                           <Link
                             to={`/join?redirect=${encodeURIComponent(`/events/${event.eventId}`)}`}
                             className="inline-flex items-center gap-2 rounded-lg bg-g-blue px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-g-blue/90"
                           >
-                            <UserPlus className="h-3.5 w-3.5" /> Join GDGoC GCEE
+                            <UserPlus className="h-3.5 w-3.5" /> Join GCEE Tech Hub
                           </Link>
                           <Link
                             to={`/login?redirect=${encodeURIComponent(`/events/${event.eventId}`)}`}
@@ -338,7 +338,7 @@ export default function EventRegister() {
                     <div className="flex items-center gap-2.5">
                       <CheckCircle2 className="h-5 w-5 text-g-green" />
                       <span className="font-display font-bold text-green-900">
-                        Verified GDGoC GCEE Member
+                        Verified GCEE Tech Hub Member
                       </span>
                     </div>
                     <button
@@ -449,7 +449,7 @@ export default function EventRegister() {
         {/* Community Info Banner */}
         <div className="mt-6 rounded-xl border border-navy-100 bg-white p-5 text-center text-xs text-ink-muted">
           <p>
-            GDGoC GCEE · Google Developer Groups on Campus · Government College of Engineering, Erode
+            GCEE Tech Hub · Government College of Engineering, Erode
           </p>
         </div>
       </div>

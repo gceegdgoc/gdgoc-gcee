@@ -46,7 +46,7 @@ export default function AdminMessages() {
     <div className="space-y-6">
       <PageHeader
         title="Messages"
-        subtitle={`Contact messages from the GDGoC GCEE website.${unread > 0 ? ` ${unread} unread.` : ''}`}
+        subtitle={`Contact messages from the GCEE Tech Hub website.${unread > 0 ? ` ${unread} unread.` : ''}`}
       />
 
       {loading ? (

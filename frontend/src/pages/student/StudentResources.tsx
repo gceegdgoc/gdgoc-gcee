@@ -74,7 +74,7 @@ export default function StudentResources() {
               </div>
               <h3 className="mt-3 font-display text-base font-bold leading-snug text-navy-900 group-hover:text-g-blue">{res.title}</h3>
               {res.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{res.description}</p>}
-              <p className="mt-auto pt-4 text-xs text-ink-faint">Shared by {res.uploadedBy || 'GDGoC GCEE'}</p>
+              <p className="mt-auto pt-4 text-xs text-ink-faint">Shared by {res.uploadedBy || 'GCEE Tech Hub'}</p>
             </a>
           ))}
         </div>

@@ -86,12 +86,12 @@ export function Navbar() {
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="flex h-12 items-center justify-between rounded-full border border-black/15 bg-white px-2 shadow-sm">
-          <Link to="/" className="flex items-center gap-2 pl-2" aria-label="GDGoC GCEE home">
+          <Link to="/" className="flex items-center gap-2 pl-2" aria-label="GCEE Tech Hub home">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-900">
               <span className="font-display text-sm font-bold text-white">G</span>
             </div>
             <span className="font-display text-sm font-bold tracking-tight text-navy-900">
-              GDGoC <span className="text-g-blue">GCEE</span>
+              GCEE <span className="text-g-blue">Tech Hub</span>
             </span>
           </Link>
           <button

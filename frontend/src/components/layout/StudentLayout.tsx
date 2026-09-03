@@ -25,7 +25,7 @@ export function StudentLayout() {
     <DashboardShell
       navItems={navItems}
       userLabel={student?.name || 'Student'}
-      userSubLabel={student?.department || 'GDGoC GCEE'}
+      userSubLabel={student?.department || 'GCEE Tech Hub'}
       logout={logoutStudent}
       basePath="/dashboard"
     />

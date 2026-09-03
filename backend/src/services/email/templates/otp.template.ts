@@ -8,12 +8,12 @@ export interface OtpEmailOptions {
 export function generateOtpEmailHtml(opts: OtpEmailOptions): { subject: string; html: string; text: string } {
   const name = escapeHtml(opts.studentName || 'Student');
   const otp = String(opts.otp || '').trim();
-  const subject = 'Your GDGoC GCEE Verification OTP';
+  const subject = 'Your GCEE Tech Hub Verification OTP';
 
   const content = `
     <tr>
       <td style="padding:32px 32px 12px 32px;">
-        <h2 style="margin:0 0 16px 0; color:#0b1b33; font-size:20px; font-weight:700;">GDGoC GCEE</h2>
+        <h2 style="margin:0 0 16px 0; color:#0b1b33; font-size:20px; font-weight:700;">GCEE Tech Hub</h2>
         <p style="margin:0; color:#334155; font-size:15px; line-height:1.5;">Hello <strong>${name}</strong>,</p>
         <p style="margin:16px 0 0 0; color:#475569; font-size:14px; line-height:1.6;">
           Your verification OTP is:
@@ -52,18 +52,18 @@ export function generateOtpEmailHtml(opts: OtpEmailOptions): { subject: string; 
         <hr style="border:none; border-top:1px solid #e2e8f0; margin:20px 0;" />
         <p style="margin:0; color:#475569; font-size:13px; line-height:1.5;">
           Regards,<br/>
-          <strong>GDGoC GCEE Team</strong>
+          <strong>GCEE Tech Hub Team</strong>
         </p>
       </td>
     </tr>
   `;
 
-  const text = `Your GDGoC GCEE verification OTP is ${otp}. It expires in 10 minutes.
+  const text = `Your GCEE Tech Hub verification OTP is ${otp}. It expires in 10 minutes.
 
 If you did not request this OTP, please ignore this email.
 
 Regards,
-GDGoC GCEE Team`;
+GCEE Tech Hub Team`;
 
   return {
     subject,

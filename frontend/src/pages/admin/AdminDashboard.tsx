@@ -53,7 +53,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <PageHeader
         title="Admin Dashboard"
-        subtitle="Overview of the GDGoC GCEE community platform."
+        subtitle="Overview of the GCEE Tech Hub community platform."
         actions={
           <Link to="/admin/events/create" className="btn-primary">
             <Plus className="h-4 w-4" /> New event
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-slate-200/60 pt-2 text-[11px] text-slate-400">
-                  <span>By {res.uploadedBy || 'GDGoC Team'}</span>
+                  <span>By {res.uploadedBy || 'GCEE Tech Hub Team'}</span>
                   <span>{formatHumanDate(res.createdAt)}</span>
                 </div>
               </div>

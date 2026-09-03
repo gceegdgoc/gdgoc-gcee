@@ -156,7 +156,7 @@ export default function Events() {
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
               <span className="text-xs font-bold uppercase tracking-wider text-g-blue">
-                GDGoC GCEE Official Events
+                GCEE Tech Hub Official Events
               </span>
             </div>
             <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl lg:text-5xl">
@@ -273,7 +273,7 @@ export default function Events() {
             {/* Event Count Summary Footer */}
             <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
               <p className="text-xs font-medium text-slate-500">
-                Displaying {events.length} GDGoC GCEE event{events.length !== 1 ? 's' : ''} • Real-time database sync active
+                Displaying {events.length} GCEE Tech Hub event{events.length !== 1 ? 's' : ''} • Real-time database sync active
               </p>
             </div>
           </div>

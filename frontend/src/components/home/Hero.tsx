@@ -49,7 +49,7 @@ export function Hero() {
         <div className="mb-6 flex flex-wrap items-center justify-center gap-2 animate-fade-in">
           <span className="chip border border-white/15 bg-white/5 text-white/80">
             <span className="h-2 w-2 animate-pulse rounded-full bg-g-green" />
-            Google Developer Groups on Campus
+            GCEE Tech Hub
           </span>
           <span className="chip border border-white/15 bg-white/5 text-white/60">GCEE · Erode</span>
         </div>
@@ -63,7 +63,7 @@ export function Hero() {
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg animate-fade-in" style={{ animationDelay: '150ms' }}>
-          GDGoC GCEE — A student developer community at Government College of Engineering, Erode. Workshops,
+          GCEE Tech Hub — A student developer community at Government College of Engineering, Erode. Workshops,
           hackathons, open source and hands-on learning for every student developer.
         </p>
 

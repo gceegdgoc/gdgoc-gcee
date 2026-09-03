@@ -30,7 +30,7 @@ export function AdminLayout() {
     <DashboardShell
       navItems={navItems}
       userLabel={admin?.name || 'Admin'}
-      userSubLabel="GDGoC GCEE Admin"
+      userSubLabel="GCEE Tech Hub Admin"
       logout={logoutAdmin}
       basePath="/admin"
     />

@@ -92,7 +92,7 @@ export async function sendBulkEventAnnouncement(opts: {
     const result = await sendEventAnnouncementEmail({
       to: student.email,
       studentName: student.name || 'Student',
-      eventName: opts.eventTitle || 'GDGoC Event',
+      eventName: opts.eventTitle || 'Community Event',
       eventDate: opts.eventDate || 'TBA',
       eventTime: opts.eventTime || 'TBA',
       eventLocation: opts.eventLocation || 'TBA',

@@ -20,7 +20,7 @@ function detailRow(label: string, value: string): string {
 export function generateWelcomeEmailHtml(opts: WelcomeEmailOptions): { subject: string; html: string; text: string } {
   const name = escapeHtml(opts.studentName || 'Student');
   const siteUrl = escapeHtml(env.clientUrl || env.appUrl || 'https://gdgoc-gcee.vercel.app');
-  const subject = 'Welcome to GDGoC GCEE';
+  const subject = 'Welcome to GCEE Tech Hub';
 
   const rows = [
     detailRow('Name', opts.studentName || ''),
@@ -90,22 +90,22 @@ export function generateWelcomeEmailHtml(opts: WelcomeEmailOptions): { subject: 
 
   const text = `Hello ${opts.studentName || 'Student'},
 
-Thank you for joining GDGoC GCEE.
+Thank you for joining GCEE Tech Hub.
 
 Your community registration has been successfully completed.
 
 Student details:
 ${detailLines}
 
-You can now participate in GDGoC GCEE workshops, events, hackathons and developer activities.
+You can now participate in GCEE Tech Hub workshops, events, hackathons and developer activities.
 
 Regards,
-GDGoC GCEE
+GCEE Tech Hub
 Government College of Engineering, Erode`;
 
   return {
     subject,
-    html: baseEmailHtml(content, 'Welcome to GDGoC GCEE! Your registration is complete.'),
+    html: baseEmailHtml(content, 'Welcome to GCEE Tech Hub! Your registration is complete.'),
     text,
   };
 }

@@ -233,7 +233,7 @@ export default function AdminResources() {
                       <ExternalLink className="h-3 w-3 shrink-0" />
                     </a>
                   </td>
-                  <td className="p-4 text-xs font-medium text-ink-soft">{r.uploadedBy || 'GDGoC Team'}</td>
+                  <td className="p-4 text-xs font-medium text-ink-soft">{r.uploadedBy || 'GCEE Tech Hub Team'}</td>
                   <td className="p-4 text-xs text-ink-muted">{formatHumanDate(r.createdAt)}</td>
                   <td className="p-4">
                     <div className="flex justify-end gap-1.5">

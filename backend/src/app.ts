@@ -80,7 +80,7 @@ export function createApp(): Express {
         success: true,
         database: 'connected',
         status: 'ok',
-        message: 'GDGoC GCEE API',
+        message: 'GCEE Tech Hub API',
         time: new Date().toISOString(),
       });
     } catch (err) {
@@ -89,7 +89,7 @@ export function createApp(): Express {
         success: false,
         database: 'disconnected',
         status: 'degraded',
-        message: 'GDGoC GCEE API',
+        message: 'GCEE Tech Hub API',
         time: new Date().toISOString(),
       });
     }

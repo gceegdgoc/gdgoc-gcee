@@ -118,16 +118,16 @@ export const env = {
   clientUrl: getPublicAppUrl(),
   cookieSecure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
   siteEmail: SITE_EMAIL,
-  adminEmail: process.env.ADMIN_EMAIL || 'admin@gdgocgcee.in',
+  adminEmail: process.env.ADMIN_EMAIL || 'admin@gceetechhub.in',
   adminPassword: process.env.ADMIN_PASSWORD || 'Admin@123',
-  adminName: process.env.ADMIN_NAME || 'GDGoC GCEE Admin',
+  adminName: process.env.ADMIN_NAME || 'GCEE Tech Hub Admin',
   gmail: {
     user: (process.env.GMAIL_USER || SITE_EMAIL).trim().toLowerCase(),
     appPassword: (process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, ''),
   },
   resendApiKey: process.env.RESEND_API_KEY || '',
   resendFromEmail: (process.env.RESEND_FROM_EMAIL || SITE_EMAIL).trim().toLowerCase(),
-  resendFromName: process.env.RESEND_FROM_NAME || 'GDGoC GCEE',
+  resendFromName: process.env.RESEND_FROM_NAME || 'GCEE Tech Hub',
   // Where Contact Us (Resend) notifications are delivered.
   contactRecipientEmail: (process.env.CONTACT_RECIPIENT_EMAIL || SITE_EMAIL).trim().toLowerCase(),
   googleFormWebhookSecret: process.env.GOOGLE_FORM_WEBHOOK_SECRET || '',
@@ -135,11 +135,11 @@ export const env = {
 };
 
 export const CLUB = {
-  name: 'GDGoC GCEE',
-  fullName: 'Google Developer Groups on Campus — Government College of Engineering, Erode',
-  shortName: 'GDGoC',
-  organization: 'GDGoC GCEE',
+  name: 'GCEE Tech Hub',
+  fullName: 'GCEE Tech Hub — Government College of Engineering, Erode',
+  shortName: 'GCEE Tech Hub',
+  organization: 'GCEE Tech Hub',
   institution: 'Government College of Engineering, Erode',
   timezone: 'Asia/Kolkata',
-  websiteName: 'GDGoC GCEE',
+  websiteName: 'GCEE Tech Hub',
 };

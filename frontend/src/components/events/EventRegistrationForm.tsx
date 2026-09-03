@@ -133,7 +133,7 @@ export function EventRegistrationForm({ event, onClose, onSuccess }: Props) {
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-g-blue">GDGoC GCEE Registration</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-g-blue">GCEE Tech Hub Registration</p>
               <h2 className="font-display text-sm font-bold text-navy-900 line-clamp-1">{event.title}</h2>
             </div>
           </div>
