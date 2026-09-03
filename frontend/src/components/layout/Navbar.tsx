@@ -78,6 +78,18 @@ export function Navbar() {
     close();
   };
 
+  // Do not display the main/public navbar inside role-specific dashboards/pages
+  const isDashboardRoute =
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/organizer') ||
+    location.pathname.startsWith('/co-organizer') ||
+    location.pathname.startsWith('/coordinator');
+
+  if (isDashboardRoute) {
+    return null;
+  }
+
   return (
     <>
       {/* Mobile pill header — sticky, full-width padding, pill-shaped */}

@@ -7,13 +7,13 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { Modal } from '../../components/ui/Modal';
 import { ButtonSpinner } from '../../components/ui/Spinner';
 import { api, getFieldErrors, getErrorMessage } from '../../lib/api';
-import { TEAMS, DEPARTMENTS, YEARS, cn } from '../../lib/utils';
+import { TEAMS, DEPARTMENTS, YEARS, COORDINATOR_RESPONSIBILITIES, getMemberDisplayRole, cn } from '../../lib/utils';
 import type { Member, MemberPayload } from '../../types';
 
 const emptyForm = { 
   name: '', email: '', phone: '', college: 'Government College of Engineering, Erode', 
   registerNumber: '', skills: '', areasOfInterest: '', whyJoin: '',
-  team: 'Community Members', role: 'Member', department: '', year: '', 
+  team: 'Community Members', role: 'Coordinator', coordinatorRole: 'Outreach Coordinator', department: '', year: '', 
   photo: '', github: '', linkedin: '', instagram: '', twitter: '' 
 };
 
@@ -89,7 +89,8 @@ export default function AdminMembers() {
       areasOfInterest: m.areasOfInterest || '',
       whyJoin: m.whyJoin || '',
       team: m.team,
-      role: m.role,
+      role: m.role || 'Coordinator',
+      coordinatorRole: m.coordinatorRole || 'Outreach Coordinator',
       department: m.department,
       year: m.year,
       photo: m.photo,
@@ -142,6 +143,7 @@ export default function AdminMembers() {
       whyJoin: form.whyJoin,
       team: form.team,
       role: form.role,
+      coordinatorRole: form.role === 'Coordinator' ? form.coordinatorRole : '',
       department: form.department,
       year: form.year,
       photo: form.photo,
@@ -218,7 +220,7 @@ export default function AdminMembers() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-navy-900">{m.name}</p>
-                      <p className="truncate text-xs text-ink-muted">{m.role}</p>
+                      <p className="truncate text-xs font-semibold text-g-blue">{getMemberDisplayRole(m)}</p>
                       <p className="truncate text-[11px] text-ink-faint">{m.department || '—'}</p>
                     </div>
                     <div className="flex shrink-0 flex-col gap-1 opacity-60 transition-opacity group-hover:opacity-100">
@@ -268,9 +270,34 @@ export default function AdminMembers() {
               </select>
             </div>
             <div>
-              <label className="label">Role</label>
-              <input className="input" value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} placeholder="e.g. Head, Coordinator" />
+              <label className="label">Main Role</label>
+              <select className="input" value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}>
+                <option value="Organizer">Organizer</option>
+                <option value="Co-Organizer">Co-Organizer</option>
+                <option value="Coordinator">Coordinator</option>
+                <option value="Staff Advisor">Staff Advisor</option>
+                {form.role && !['Organizer', 'Co-Organizer', 'Coordinator', 'Staff Advisor'].includes(form.role) && (
+                  <option value={form.role}>{form.role}</option>
+                )}
+              </select>
             </div>
+            {form.role === 'Coordinator' && (
+              <div>
+                <label className="label">Coordinator Responsibility</label>
+                <select
+                  className="input"
+                  value={form.coordinatorRole}
+                  onChange={(e) => setForm((f) => ({ ...f, coordinatorRole: e.target.value }))}
+                >
+                  {COORDINATOR_RESPONSIBILITIES.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                  {form.coordinatorRole && !COORDINATOR_RESPONSIBILITIES.includes(form.coordinatorRole as any) && (
+                    <option value={form.coordinatorRole}>{form.coordinatorRole}</option>
+                  )}
+                </select>
+              </div>
+            )}
             <div>
               <label className="label">Department</label>
               <select className="input" value={form.department} onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}>

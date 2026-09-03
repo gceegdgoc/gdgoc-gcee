@@ -232,14 +232,14 @@ async function seed() {
 
   // ---- Members ----
   const teamSpec: Array<[string, string, string, string]> = [
-    ['Priya Ramesh', 'Core Team', 'Lead', 'CSE'],
-    ['Karthik Subramanian', 'Core Team', 'Co-Lead', 'ECE'],
+    ['Priya Ramesh', 'Core Team', 'Organizer', 'CSE'],
+    ['Karthik Subramanian', 'Core Team', 'Co-Organizer', 'ECE'],
     ['Divya Lakshmi', 'Student Coordinators', 'Coordinator', 'IT'],
-    ['Arjun Nandakumar', 'Technical Team', 'Head', 'CSE'],
-    ['Sneha Krishnan', 'Design Team', 'Head', 'ECE'],
-    ['Rahul Varma', 'Event Team', 'Head', 'MEC'],
-    ['Anitha Kumari', 'Community Members', 'Member', 'CSE'],
-    ['Vignesh Raja', 'Community Members', 'Member', 'EEE'],
+    ['Arjun Nandakumar', 'Technical Team', 'Coordinator', 'CSE'],
+    ['Sneha Krishnan', 'Design Team', 'Coordinator', 'ECE'],
+    ['Rahul Varma', 'Event Team', 'Coordinator', 'MEC'],
+    ['Anitha Kumari', 'Community Members', 'Coordinator', 'CSE'],
+    ['Vignesh Raja', 'Community Members', 'Coordinator', 'EEE'],
   ];
   for (const [name, team, role, dept] of teamSpec) {
     const email = `${name.toLowerCase().replace(/\s+/g, '')}@gceetechhub.in`;

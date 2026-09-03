@@ -30,7 +30,8 @@ import { Reveal } from '../../components/ui/Reveal';
 import { CountUp } from '../../components/ui/CountUp';
 import { PageLoader } from '../../components/ui/Spinner';
 import { api, getErrorMessage } from '../../lib/api';
-import { formatHumanDate, cn, getEffectiveEventStatus } from '../../lib/utils';
+import { MemberCard } from '../../components/members/MemberCard';
+import { formatHumanDate, cn, getEffectiveEventStatus, sortMembersByRoleHierarchy } from '../../lib/utils';
 import { SITE_EMAIL } from '../../lib/site';
 import type { GEvent, GalleryItem, Member } from '../../types';
 
@@ -81,7 +82,7 @@ export default function Home() {
         });
         setUpcoming(validUpcoming.slice(0, 3));
         setFeatured(events.find((e) => e.isInauguration) || validUpcoming[0] || events[0] || null);
-        setMembers(membersRes.data.members.slice(0, 6));
+        setMembers(membersRes.data.members || []);
         setGallery(galleryRes.data.items.slice(0, 6));
       } catch (err) {
         toast.error(getErrorMessage(err));
@@ -342,38 +343,31 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Community members */}
+      {/* Community members & Team Roles */}
       <section className="bg-white py-20">
         <div className="container-x">
           <Reveal>
             <SectionHeading
-              eyebrow="Meet the community"
-              title="Community members"
-              subtitle="A few of the passionate developers behind GCEE Tech Hub."
+              eyebrow="Meet the team"
+              title="Board Members"
+              subtitle="The team driving GCEE Tech Hub — Organizer, Co-Organizer, Coordinators, and Staff Advisors."
             />
           </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {members.map((member, i) => (
-              <Reveal key={member._id} delay={i * 80}>
-                <div className="card group flex items-center gap-4 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
-                    {member.photo ? (
-                      <img src={member.photo} alt={member.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-g-blue to-g-green text-xl font-bold text-white">
-                        {member.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-navy-900">{member.name}</p>
-                    <p className="truncate text-sm text-ink-muted">{member.role}</p>
-                    <p className="truncate text-xs text-ink-faint">{member.department}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+
+          {(() => {
+            const sorted = sortMembersByRoleHierarchy(members);
+            if (sorted.length === 0) return null;
+            return (
+              <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+                {sorted.map((member, i) => (
+                  <Reveal key={member._id} delay={i * 40}>
+                    <MemberCard member={member} />
+                  </Reveal>
+                ))}
+              </div>
+            );
+          })()}
+
           <Reveal>
             <div className="mt-10 text-center">
               <Link to="/team" className="btn-outline">

@@ -285,4 +285,92 @@ export const TEAMS = [
   'Community Members',
 ];
 
+export const ROLE_CATEGORIES = ['Organizer', 'Co-Organizer', 'Coordinators', 'Staff Advisors'] as const;
+export type RoleCategory = (typeof ROLE_CATEGORIES)[number];
+
+export function getRoleCategory(member: { role?: string; team?: string; coordinatorRole?: string }): RoleCategory {
+  const role = (member.role || '').trim().toLowerCase();
+  const team = (member.team || '').trim().toLowerCase();
+
+  if (
+    role.includes('staff') ||
+    role.includes('faculty') ||
+    role.includes('advisor') ||
+    team.includes('staff') ||
+    team.includes('faculty') ||
+    team.includes('advisor')
+  ) {
+    return 'Staff Advisors';
+  }
+
+  if (role === 'organizer' || role === 'lead' || role === 'community lead') {
+    return 'Organizer';
+  }
+  if (role === 'co-organizer' || role === 'co-lead' || role === 'co organizer' || role === 'co lead') {
+    return 'Co-Organizer';
+  }
+  return 'Coordinators';
+}
+
+export function groupMembersByRoleCategory<T extends { role?: string; team?: string; coordinatorRole?: string }>(
+  members: T[]
+): Record<RoleCategory, T[]> {
+  const grouped: Record<RoleCategory, T[]> = {
+    Organizer: [],
+    'Co-Organizer': [],
+    Coordinators: [],
+    'Staff Advisors': [],
+  };
+  for (const m of members) {
+    const cat = getRoleCategory(m);
+    grouped[cat].push(m);
+  }
+  return grouped;
+}
+
 export const YEARS = ['I', 'II', 'III', 'IV'];
+
+export const COORDINATOR_RESPONSIBILITIES = [
+  'Outreach Coordinator',
+  'Event Coordinator',
+  'Technical Coordinator',
+  'Design Coordinator',
+  'Documentation'
+] as const;
+
+export function getMemberDisplayRole(member: { role?: string; team?: string; coordinatorRole?: string }): string {
+  const cat = getRoleCategory(member);
+  const coordinatorRole = (member.coordinatorRole || '').trim();
+  const role = (member.role || '').trim();
+
+  if (cat === 'Organizer') return 'Organizer';
+  if (cat === 'Co-Organizer') return 'Co-Organizer';
+  if (cat === 'Staff Advisors') return 'Staff Advisor';
+
+  if (coordinatorRole) return coordinatorRole;
+  if (role && role !== 'Member' && role !== 'Coordinator') return role;
+
+  return 'Coordinator';
+}
+
+export function getCleanRoleLabel(member: { role?: string; team?: string; coordinatorRole?: string }): string {
+  return getMemberDisplayRole(member);
+}
+
+export function sortMembersByRoleHierarchy<T extends { role?: string; team?: string; coordinatorRole?: string }>(
+  members: T[]
+): T[] {
+  const roleRank: Record<RoleCategory, number> = {
+    Organizer: 1,
+    'Co-Organizer': 2,
+    Coordinators: 3,
+    'Staff Advisors': 4,
+  };
+
+  return [...members].sort((a, b) => {
+    const rankA = roleRank[getRoleCategory(a)] || 99;
+    const rankB = roleRank[getRoleCategory(b)] || 99;
+    return rankA - rankB;
+  });
+}
+

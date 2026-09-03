@@ -26,11 +26,15 @@ export function AdminLayout() {
     { label: 'Settings', to: '/admin/settings', icon: Settings },
   ];
 
+  const roleLabel = admin?.role && admin.role !== 'superadmin' && admin.role !== 'admin'
+    ? admin.role
+    : 'GCEE Tech Hub Admin';
+
   return (
     <DashboardShell
       navItems={navItems}
       userLabel={admin?.name || 'Admin'}
-      userSubLabel="GCEE Tech Hub Admin"
+      userSubLabel={roleLabel}
       logout={logoutAdmin}
       basePath="/admin"
     />
