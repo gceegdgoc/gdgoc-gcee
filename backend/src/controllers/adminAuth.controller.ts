@@ -5,6 +5,7 @@ import { Admin } from '../models/Admin';
 import { env } from '../config/env';
 import { signToken } from '../utils/jwt';
 import { connectDB, isDbConnectionError } from '../config/db';
+import { ensureAdminSeeded } from '../utils/seedAdmin';
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -27,6 +28,7 @@ export function publicAdmin(admin: any) {
 export async function adminLogin(req: any, res: Response) {
   try {
     await connectDB();
+    await ensureAdminSeeded();
 
     const { email, password } = req.body;
     if (!email || !password) {
@@ -34,13 +36,14 @@ export async function adminLogin(req: any, res: Response) {
       return;
     }
 
-    const admin = await Admin.findOne({ email: email.toLowerCase() });
+    const cleanEmail = String(email).toLowerCase().trim();
+    const admin = await Admin.findOne({ email: cleanEmail });
     if (!admin || admin.isActive === false) {
       res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
       return;
     }
 
-    const ok = await bcrypt.compare(password, admin.passwordHash);
+    const ok = await bcrypt.compare(String(password), admin.passwordHash);
     if (!ok) {
       res.status(401).json({ success: false, message: 'Invalid email or password.' });
       return;

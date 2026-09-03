@@ -75,7 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function loginAdmin(email: string, password: string) {
-    const res = await api.post('/admin/auth/login', { email, password });
+    const cleanEmail = email.trim();
+    const res = await api.post('/admin/auth/login', { email: cleanEmail, password });
     if (res.data.token) localStorage.setItem('gdgoc_admin_token', res.data.token);
     setAdmin(res.data.admin);
     return res.data.admin as Admin;

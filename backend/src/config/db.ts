@@ -101,5 +101,11 @@ export async function connectDB(): Promise<typeof mongoose> {
     });
 
   cached.conn = await cached.promise;
+  try {
+    const { ensureAdminSeeded } = await import('../utils/seedAdmin');
+    await ensureAdminSeeded();
+  } catch (e: any) {
+    console.error('[DB] Automatic admin check failed:', e.message);
+  }
   return cached.conn;
 }
