@@ -105,7 +105,7 @@ export const EMAIL_REGISTRATION_URL = 'https://gdgoc-gcee.vercel.app/events/EV-2
  * Used as the sender/from/reply-to for every website email and displayed
  * anywhere the site shows a contact email. Override with SITE_EMAIL.
  */
-export const SITE_EMAIL = (process.env.SITE_EMAIL || 'gceegdgoc@gmail.com').trim().toLowerCase();
+export const SITE_EMAIL = (process.env.SITE_EMAIL || 'gceetech@gmail.com').trim().toLowerCase();
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',

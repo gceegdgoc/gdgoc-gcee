@@ -4,12 +4,12 @@
  * Run: npm run test:email --prefix backend
  *
  * TEST A — Normal website email:
- *   Nodemailer → Gmail SMTP (smtp.gmail.com:465) → gceegdgoc@gmail.com account.
+ *   Nodemailer → Gmail SMTP (smtp.gmail.com:465) → gceetech@gmail.com account.
  *   Verifies SMTP authentication, connection, and a real send.
  *   MUST NOT use Resend.
  *
  * TEST B — Contact Us form flow:
- *   Resend API → gceegdgoc@gmail.com, Reply-To = student/test address.
+ *   Resend API → gceetech@gmail.com, Reply-To = student/test address.
  *   Verifies RESEND_API_KEY, validation, delivery, recipient and Reply-To.
  *   MUST NOT use Nodemailer.
  */

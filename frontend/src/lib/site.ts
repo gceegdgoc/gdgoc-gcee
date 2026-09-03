@@ -4,4 +4,4 @@
  * links. The backend sender is configured separately via GMAIL_USER
  * (server-side only — never expose SMTP credentials here).
  */
-export const SITE_EMAIL = 'gceegdgoc@gmail.com';
+export const SITE_EMAIL = 'gceetech@gmail.com';
