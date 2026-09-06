@@ -156,7 +156,6 @@ export interface Member {
   email?: string;
   phone?: string;
   college?: string;
-  registerNumber?: string;
   skills?: string;
   areasOfInterest?: string;
   whyJoin?: string;
@@ -182,7 +181,6 @@ export interface MemberPayload {
   email: string;
   phone: string;
   college: string;
-  registerNumber: string;
   skills: string;
   areasOfInterest: string;
   whyJoin: string;

@@ -12,7 +12,7 @@ import type { Member, MemberPayload } from '../../types';
 
 const emptyForm = { 
   name: '', email: '', phone: '', college: 'Government College of Engineering, Erode', 
-  registerNumber: '', skills: '', areasOfInterest: '', whyJoin: '',
+  skills: '', areasOfInterest: '', whyJoin: '',
   team: 'Community Members', role: 'Coordinator', coordinatorRole: 'Outreach Coordinator', department: '', year: '', 
   photo: '', github: '', linkedin: '', instagram: '', twitter: '' 
 };
@@ -84,7 +84,6 @@ export default function AdminMembers() {
       email: m.email || '',
       phone: m.phone || '',
       college: m.college || 'Government College of Engineering, Erode',
-      registerNumber: m.registerNumber || '',
       skills: m.skills || '',
       areasOfInterest: m.areasOfInterest || '',
       whyJoin: m.whyJoin || '',
@@ -137,7 +136,6 @@ export default function AdminMembers() {
       email: form.email,
       phone: form.phone,
       college: form.college,
-      registerNumber: form.registerNumber,
       skills: form.skills,
       areasOfInterest: form.areasOfInterest,
       whyJoin: form.whyJoin,
@@ -252,10 +250,6 @@ export default function AdminMembers() {
             <div>
               <label className="label">Phone</label>
               <input type="tel" className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">Register Number</label>
-              <input className="input" value={form.registerNumber} onChange={(e) => setForm((f) => ({ ...f, registerNumber: e.target.value }))} />
             </div>
           </div>
           <div>

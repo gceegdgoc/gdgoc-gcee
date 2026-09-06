@@ -5,7 +5,7 @@ import { isValidHttpUrl } from '../utils/safe';
  * Canonical Member model.
  *
  * A member is a community/team profile. Contact/application details
- * (email, phone, registerNumber, skills, areasOfInterest, whyJoin) are stored
+ * (email, phone, skills, areasOfInterest, whyJoin) are stored
  * alongside team display fields (team, role, photo, socialLinks, order).
  * Only `name` and `email` are hard-required at the database level; the admin
  * controller enforces the richer contract explicitly so legacy seeded members
@@ -28,7 +28,6 @@ export interface IMember extends Document {
   college?: string;
   department?: string;
   year?: string;
-  registerNumber?: string;
   skills?: string;
   githubUrl?: string;
   linkedinUrl?: string;
@@ -83,7 +82,6 @@ const memberSchema = new Schema<IMember>(
     college: { type: String, default: 'Government College of Engineering, Erode' },
     department: { type: String, default: '' },
     year: { type: String, default: '' },
-    registerNumber: { type: String, default: '', trim: true },
     skills: { type: String, default: '' },
     githubUrl: { type: String, default: '' },
     linkedinUrl: { type: String, default: '' },

@@ -12,7 +12,6 @@ function serialize(m: any) {
     email: m.email || '',
     phone: m.phone || '',
     college: m.college || '',
-    registerNumber: m.registerNumber || '',
     skills: m.skills || '',
     areasOfInterest: m.areasOfInterest || '',
     whyJoin: m.whyJoin || '',
@@ -102,7 +101,6 @@ export function normalizeMemberPayload(body: any = {}) {
     college: asTrimmedString(body.college) || 'Government College of Engineering, Erode',
     department: asTrimmedString(body.department),
     year: asTrimmedString(body.year),
-    registerNumber: asTrimmedString(body.registerNumber),
     skills: asTrimmedString(body.skills),
     areasOfInterest: asTrimmedString(body.areasOfInterest),
     whyJoin: asTrimmedString(body.whyJoin),
@@ -195,7 +193,7 @@ export async function updateMember(req: any, res: Response) {
     // Overlay provided fields on the existing document; unspecified fields stay untouched.
     const overlay: any = {};
     const passthrough = [
-      'name', 'email', 'phone', 'college', 'department', 'year', 'registerNumber',
+      'name', 'email', 'phone', 'college', 'department', 'year',
       'skills', 'areasOfInterest', 'whyJoin', 'team', 'role', 'coordinatorRole',
       'photo', 'order', 'isActive',
     ];

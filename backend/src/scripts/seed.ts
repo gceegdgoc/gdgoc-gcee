@@ -243,13 +243,11 @@ async function seed() {
   ];
   for (const [name, team, role, dept] of teamSpec) {
     const email = `${name.toLowerCase().replace(/\s+/g, '')}@gceetechhub.in`;
-    const registerNumber = `REG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
     await Member.findOneAndUpdate(
       { name },
       {
         $set: {
           email,
-          registerNumber,
           team,
           role,
           department: `${dept}`,
