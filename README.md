@@ -1,6 +1,6 @@
-# GDGoC GCEE Website
+# GCEE Tech Hub Website
 
-Official website of **Google Developer Groups on Campus (GDGoC) – Government College of Engineering, Erode (GCEE)**.
+Official website of ** GCEE Tech Hub- Government College of Engineering, Erode (GCEE)**.
 
 A full-stack community website for showcasing GDGoC GCEE activities, events, registrations, announcements, and community information.
 
@@ -36,8 +36,8 @@ A full-stack community website for showcasing GDGoC GCEE activities, events, reg
 
 ### Public Website
 
-* GDGoC GCEE homepage
-* About GDGoC GCEE
+*  GCEE Tech Hub homepage
+* About  GCEE Tech Hub
 * Community information
 * Upcoming events
 * Past events
@@ -764,7 +764,7 @@ If the frontend and backend are deployed separately:
 
 ```text
                  ┌─────────────────────┐
-                 │   GDGoC GCEE User   │
+                 │   GCEE Tech Hub User│
                  └──────────┬──────────┘
                             │
                             ▼
@@ -1219,7 +1219,7 @@ Past Event
 
 ```text
 ┌─────────────────────────────────────────┐
-│              GDGoC GCEE                  │
+│               GCEE Tech Hub             │
 │              Website                    │
 └───────────────────┬─────────────────────┘
                     │
@@ -1246,7 +1246,7 @@ Past Event
 
 # License
 
-This project is maintained for the **GDGoC GCEE community at Government College of Engineering, Erode**.
+This project is maintained for the ** GCEE Tech Hub community at Government College of Engineering, Erode**.
 
 Refer to the repository license file for the applicable licensing terms.
 
@@ -1262,9 +1262,9 @@ For website bugs, feature requests, improvements, or documentation changes:
 
 ---
 
-## GDGoC GCEE
+##  GCEE Tech Hub
 
-**Google Developer Groups on Campus – Government College of Engineering, Erode**
+**GCEE Tech Hub- Government College of Engineering, Erode**
 
 🌐 Live Website: https://gdgoc-gcee.vercel.app/
 
