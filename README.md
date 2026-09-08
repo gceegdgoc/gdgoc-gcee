@@ -1,14 +1,14 @@
 # GCEE Tech Hub Website
 
-Official website of ** GCEE Tech Hub- Government College of Engineering, Erode (GCEE)**.
+Official website of **GCEE Tech Hub - Government College of Engineering, Erode (GCEE)**.
 
-A full-stack community website for showcasing GDGoC GCEE activities, events, registrations, announcements, and community information.
+A full-stack community website for showcasing GCEE Tech Hub activities, events, registrations, announcements, and community information.
 
 🌐 **Live Website:** https://gdgoc-gcee.vercel.app/
 
 ---
 
-## Table of Contents
+# Table of Contents
 
 * [Features](#features)
 * [Technology Stack](#technology-stack)
@@ -34,10 +34,10 @@ A full-stack community website for showcasing GDGoC GCEE activities, events, reg
 
 # Features
 
-### Public Website
+## Public Website
 
-*  GCEE Tech Hub homepage
-* About  GCEE Tech Hub
+* GCEE Tech Hub homepage
+* About GCEE Tech Hub
 * Community information
 * Upcoming events
 * Past events
@@ -48,7 +48,7 @@ A full-stack community website for showcasing GDGoC GCEE activities, events, reg
 * Contact information
 * Responsive design
 
-### Admin Dashboard
+## Admin Dashboard
 
 * Secure admin login
 * Dashboard overview
@@ -63,7 +63,7 @@ A full-stack community website for showcasing GDGoC GCEE activities, events, reg
 * Search and filtering
 * Database-backed data management
 
-### Email System
+## Email System
 
 The website uses **SMTP/Nodemailer** for sending emails.
 
@@ -104,12 +104,11 @@ No n8n automation is required for the email workflow.
 # Project Structure
 
 ```text
-gdgoc-gcee/
+gcdgoc-gcee/
 ├── public/
 │   ├── events/
 │   │   ├── posters/
 │   │   └── photos/
-│   │
 │   ├── images/
 │   ├── logos/
 │   └── favicon.*
@@ -117,7 +116,6 @@ gdgoc-gcee/
 ├── src/
 │   ├── assets/
 │   │   └── images/
-│   │
 │   ├── components/
 │   │   ├── Navbar.*
 │   │   ├── Footer.*
@@ -127,28 +125,23 @@ gdgoc-gcee/
 │   │   ├── Community.*
 │   │   ├── Contact.*
 │   │   └── PageLoader.*
-│   │
 │   ├── pages/
 │   │   ├── Home.*
 │   │   ├── Events.*
 │   │   ├── EventDetails.*
 │   │   ├── Register.*
 │   │   └── Contact.*
-│   │
 │   ├── admin/
 │   │   ├── AdminLogin.*
 │   │   ├── AdminDashboard.*
 │   │   ├── Students.*
 │   │   ├── Events.*
 │   │   └── Settings.*
-│   │
 │   ├── services/
 │   │   ├── api.*
 │   │   └── email.*
-│   │
 │   ├── data/
 │   │   └── events.*
-│   │
 │   ├── App.*
 │   ├── main.*
 │   └── index.css
@@ -158,29 +151,23 @@ gdgoc-gcee/
 │   │   ├── Student.*
 │   │   ├── Event.*
 │   │   └── Registration.*
-│   │
 │   ├── routes/
 │   │   ├── auth.*
 │   │   ├── students.*
 │   │   ├── events.*
 │   │   ├── registrations.*
 │   │   └── email.*
-│   │
 │   ├── controllers/
 │   │   ├── authController.*
 │   │   ├── studentController.*
 │   │   ├── eventController.*
 │   │   └── emailController.*
-│   │
 │   ├── middleware/
 │   │   └── auth.*
-│   │
 │   ├── config/
 │   │   └── db.*
-│   │
 │   ├── utils/
 │   │   └── mailer.*
-│   │
 │   └── server.*
 │
 ├── .env
@@ -208,16 +195,12 @@ Install the following before running the project:
 * Gmail account with SMTP/App Password
 * Git
 
----
-
 ## 1. Clone the repository
 
 ```bash
 git clone <your-github-repository-url>
-cd gdgoc-gcee
+cd gcee-tech-hub
 ```
-
----
 
 ## 2. Install dependencies
 
@@ -233,15 +216,11 @@ npm install
 cd ..
 ```
 
----
-
 ## 3. Configure environment variables
 
 Create the required `.env` files and add the MongoDB and SMTP configuration.
 
-See the [Environment Variables](#environment-variables) section.
-
----
+See the **Environment Variables** section.
 
 ## 4. Start the frontend
 
@@ -254,8 +233,6 @@ The Vite development server will normally run at:
 ```text
 http://localhost:5173
 ```
-
----
 
 ## 5. Start the backend
 
@@ -296,10 +273,10 @@ SMTP_SECURE=false
 SMTP_USER="yourclub@gmail.com"
 SMTP_PASSWORD="your_gmail_app_password"
 
-SMTP_FROM="GDGoC GCEE <yourclub@gmail.com>"
+SMTP_FROM="GCEE Tech Hub <yourclub@gmail.com>"
 ```
 
-### Important
+## Important
 
 Never commit real credentials to GitHub.
 
@@ -345,7 +322,7 @@ General process:
 Example:
 
 ```env
-SMTP_USER="gdgocgcee@gmail.com"
+SMTP_USER="gceetechhub@gmail.com"
 SMTP_PASSWORD="xxxx xxxx xxxx xxxx"
 ```
 
@@ -361,7 +338,7 @@ The student registration flow works through the website backend.
 Student
    │
    ▼
-Open GDGoC GCEE Website
+Open GCEE Tech Hub Website
    │
    ▼
 Registration Form
@@ -393,7 +370,7 @@ The backend is responsible for database operations and email delivery.
 
 # Admin Panel
 
-The admin dashboard provides administrative controls for the GDGoC GCEE website.
+The admin dashboard provides administrative controls for the GCEE Tech Hub website.
 
 Admin access should be protected and must not expose sensitive credentials to the frontend.
 
@@ -480,7 +457,7 @@ Example event data:
   date: "15-09-2026",
   time: "10:00 AM - 12:00 PM",
   venue: "GCEE Campus",
-  handledBy: "GDGoC GCEE",
+  handledBy: "GCEE Tech Hub",
   type: "Workshop",
   description: "A practical workshop on Git and GitHub.",
   registrationLink: "https://forms.google.com/..."
@@ -632,8 +609,6 @@ Contact
 Footer
 ```
 
----
-
 ## Navbar
 
 Update navigation links inside the Navbar component.
@@ -647,8 +622,6 @@ Events
 Community
 Contact
 ```
-
----
 
 ## Events
 
@@ -670,7 +643,7 @@ Photos
 
 ---
 
-## Event Posters
+# Event Posters
 
 Store event posters in:
 
@@ -688,7 +661,7 @@ Then reference the image from the event.
 
 ---
 
-## Event Photos
+# Event Photos
 
 After an event is completed, add event photos to:
 
@@ -712,8 +685,6 @@ The frontend is deployed on Vercel.
 Live website:
 
 https://gdgoc-gcee.vercel.app/
-
----
 
 ## Build Before Deployment
 
@@ -763,26 +734,26 @@ Do not put SMTP credentials inside frontend environment variables that are expos
 If the frontend and backend are deployed separately:
 
 ```text
-                 ┌─────────────────────┐
-                 │   GCEE Tech Hub User│
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │   React + Vite      │
-                 │     Frontend        │
-                 └──────────┬──────────┘
-                            │ API
-                            ▼
-                 ┌─────────────────────┐
-                 │ Node.js + Express   │
-                 │      Backend        │
-                 └──────┬─────────┬────┘
-                        │         │
-                        ▼         ▼
-                 ┌──────────┐  ┌────────────┐
-                 │ MongoDB  │  │ SMTP/Gmail │
-                 └──────────┘  └────────────┘
+                  ┌─────────────────────┐
+                  │   GCEE Tech Hub User│
+                  └──────────┬──────────┘
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │   React + Vite      │
+                  │     Frontend        │
+                  └──────────┬──────────┘
+                             │ API
+                             ▼
+                  ┌─────────────────────┐
+                  │ Node.js + Express   │
+                  │      Backend        │
+                  └──────┬─────────┬────┘
+                         │         │
+                         ▼         ▼
+                  ┌──────────┐  ┌────────────┐
+                  │ MongoDB  │  │ SMTP/Gmail │
+                  └──────────┘  └────────────┘
 ```
 
 This keeps database credentials and SMTP credentials on the server side.
@@ -854,9 +825,7 @@ src/components/YourSection.jsx
 
 4. Add the navigation link if required.
 
----
-
-# New Public Page
+## New Public Page
 
 Create a page inside the project's pages/routes structure.
 
@@ -874,9 +843,7 @@ Example:
 /community
 ```
 
----
-
-# New Admin Page
+## New Admin Page
 
 Create a new admin page and protect it using the existing admin authentication middleware/route protection.
 
@@ -939,8 +906,6 @@ node -v
 npm -v
 ```
 
----
-
 ## Backend Does Not Connect
 
 Check:
@@ -952,8 +917,6 @@ Environment variables
 Network connection
 MongoDB Atlas Network Access
 ```
-
----
 
 ## MongoDB Connection Error
 
@@ -972,8 +935,6 @@ Database Cluster
 ```
 
 Make sure the deployment environment is allowed to connect.
-
----
 
 ## SMTP Email Not Sending
 
@@ -999,8 +960,6 @@ Make sure the SMTP password is a **Google App Password**.
 
 Do not use the normal Gmail account password.
 
----
-
 ## CORS Error
 
 If frontend and backend are deployed separately, make sure the backend allows the frontend origin.
@@ -1013,8 +972,6 @@ https://gdgoc-gcee.vercel.app
 
 Do not use `*` unnecessarily when authentication or credentials are involved.
 
----
-
 ## 404 Error
 
 Check:
@@ -1025,8 +982,6 @@ Check:
 * React Router configuration
 * API deployment status
 * Environment variables
-
----
 
 ## Event Not Found
 
@@ -1040,8 +995,6 @@ Frontend API URL
 ```
 
 Make sure the event exists in MongoDB before requesting its details.
-
----
 
 ## Build Failure
 
@@ -1220,19 +1173,19 @@ Past Event
 ```text
 ┌─────────────────────────────────────────┐
 │               GCEE Tech Hub             │
-│              Website                    │
+│                 Website                 │
 └───────────────────┬─────────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────────┐
 │          React + Vite + Tailwind        │
-│              Frontend                   │
+│                Frontend                 │
 └───────────────────┬─────────────────────┘
                     │ REST API
                     ▼
 ┌─────────────────────────────────────────┐
 │          Node.js + Express              │
-│              Backend                    │
+│                Backend                  │
 └──────────────┬───────────────┬──────────┘
                │               │
                ▼               ▼
@@ -1246,7 +1199,7 @@ Past Event
 
 # License
 
-This project is maintained for the ** GCEE Tech Hub community at Government College of Engineering, Erode**.
+This project is maintained for the **GCEE Tech Hub community at Government College of Engineering, Erode**.
 
 Refer to the repository license file for the applicable licensing terms.
 
@@ -1258,13 +1211,13 @@ For website bugs, feature requests, improvements, or documentation changes:
 
 * Open a GitHub issue.
 * Submit a pull request for code improvements.
-* Contact the GDGoC GCEE organizing team through the official community channels.
+* Contact the GCEE Tech Hub organizing team through the official community channels.
 
 ---
 
-##  GCEE Tech Hub
+## GCEE Tech Hub
 
-**GCEE Tech Hub- Government College of Engineering, Erode**
+**GCEE Tech Hub - Government College of Engineering, Erode**
 
 🌐 Live Website: https://gdgoc-gcee.vercel.app/
 
